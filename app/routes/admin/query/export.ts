@@ -1,12 +1,11 @@
 import { LoaderFunction, Response } from "@remix-run/node";
 import Zip from "jszip";
 import { exec } from "shelljs";
-import Database from "~/lib/database";
+import { db } from "~/lib/database";
 
 export const loader: LoaderFunction = async () => {
     const zip = new Zip();
-    const databases = await Database.list();
-    for (const database of databases) {
+    for (const database of [db.database]) {
         zip.file(
             `Export/${database}.sql`,
             exec(

@@ -1,38 +1,12 @@
-import type { Identified, Session } from "./types";
+import type { Identified } from "./types";
 
-export default class Database {
+export class Database {
     namespace: string;
     database: string;
 
     constructor(namespace: string = "test", database: string = "test") {
         this.namespace = namespace;
         this.database = database;
-    }
-
-    static db(name: string): Database {
-        return new Database("test", name);
-    }
-
-    static get meta(): Database {
-        return new Database("test", "meta");
-    }
-
-    static tenant(name: string): Database {
-        return new Database("test", `tenant_${name}`);
-    }
-
-    static async list(): Promise<string[]> {
-        return Object.keys(
-            (await Database.meta.query("info for namespace")).db,
-        );
-    }
-
-    static async session(): Promise<Session> {
-        let session = await Database.meta.select<Session>("session", "root");
-        if (!session) {
-            session = { id: "root", queries: [] };
-        }
-        return session;
     }
 
     async call(
@@ -101,3 +75,5 @@ export default class Database {
         return records[0] as T;
     }
 }
+
+export const db = new Database();

@@ -8,10 +8,6 @@ export interface Configuration extends Identified {
     authenticationPasswordField: string;
 }
 
-export interface Session extends Identified {
-    queries: string[];
-}
-
 export interface BaseField {
     name: string;
     type: string;

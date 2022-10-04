@@ -5,7 +5,7 @@ import { setProperty } from "dot-prop";
 import { useEffect, useRef, useState } from "react";
 import { MdClose, MdDelete } from "react-icons/md";
 import { ReactSortable } from "react-sortablejs";
-import Database from "~/lib/database";
+import { db } from "~/lib/database";
 import { inv, rid } from "~/lib/helper";
 import { Collection } from "~/lib/model";
 import type { Field, RadioField } from "~/lib/types";
@@ -17,7 +17,7 @@ type LoaderData = {
 
 export const loader: LoaderFunction = async ({ params }) => {
     const id = inv(params.id, "Collection ID is required");
-    const collection = await Database.meta.select<Collection>("collection", id);
+    const collection = await db.select<Collection>("_collection", id);
     return json<LoaderData>({ collection });
 };
 
@@ -35,7 +35,7 @@ export const action: ActionFunction = async ({ request }) => {
                 .filter((it: string) => it);
         }
     }
-    await Database.meta.update(collection);
+    await db.update(collection);
     return null;
 };
 
@@ -50,7 +50,7 @@ export default function CollectionRoute() {
 
     const onDelete = () => {
         action.submit(
-            { id: rid(collection), table: "collection" },
+            { id: rid(collection), table: "_collection" },
             { method: "post", action: "/admin/delete" },
         );
     };

@@ -5,7 +5,7 @@ import { setProperty } from "dot-prop";
 import { capitalize, pluralize } from "inflection";
 import { useEffect, useRef, useState } from "react";
 import { MdDelete } from "react-icons/md";
-import Database from "~/lib/database";
+import { db } from "~/lib/database";
 import { inv, rid } from "~/lib/helper";
 import { Collection, Tenant } from "~/lib/model";
 import type { Field, RadioField } from "~/lib/types";
@@ -22,7 +22,7 @@ export const loader: LoaderFunction = async ({ params }) => {
     const collections = await Collection.all();
     const data: Record<string, Record<string, any>[]> = {};
     for (const collection of collections) {
-        data[collection.name] = await tenant.db.select(collection.name);
+        data[collection.name] = await db.select(collection.name);
     }
     return json<LoaderData>({ tenant, collections, data });
 };
@@ -33,7 +33,7 @@ export const action: ActionFunction = async ({ request }) => {
     for (const [key, value] of form.entries()) {
         setProperty(tenant, key, value);
     }
-    await Database.meta.update(tenant);
+    await db.update(tenant);
     return null;
 };
 
@@ -75,7 +75,7 @@ function TenantProperties({ tenant }: TenantPropertiesProps) {
 
     const onDelete = () => {
         action.submit(
-            { id: rid(tenant), table: "tenant" },
+            { id: rid(tenant), table: "_tenant" },
             { method: "post", action: "/admin/delete" },
         );
     };
@@ -218,7 +218,7 @@ function TenantCollectionRecordEdit({ record }: TenantRecordProps) {
                     <input
                         type="hidden"
                         name="tenant"
-                        value={rid(record.tenant)}
+                        value={"_" + rid(record.tenant)}
                     />
                     <div className="flex flex-col space-y-4">
                         <div>

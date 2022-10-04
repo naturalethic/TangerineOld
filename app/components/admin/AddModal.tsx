@@ -42,8 +42,8 @@ export default function AddModal({
         }
         const record = JSON.stringify({ ...template, name });
         action.submit(
-            { table, record },
-            { method: "post", action: "/admin/add" },
+            { record },
+            { method: "post", action: `/admin/${table}/add` },
         );
         onClose();
     };

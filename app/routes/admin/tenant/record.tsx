@@ -1,16 +1,14 @@
 import type { ActionFunction } from "@remix-run/node";
 import { setProperty } from "dot-prop";
-import Database from "~/lib/database";
+import { db } from "~/lib/database";
 import { inv } from "~/lib/helper";
 
 export const action: ActionFunction = async ({ request }) => {
     const form = await request.formData();
     const table = inv(form.get("table"), "Table is required");
-    const tenant = inv(form.get("tenant"), "Tenant is required");
-    const db = Database.tenant(tenant);
     const record = {};
     for (const [key, value] of form.entries()) {
-        if (!["table", "tenant"].includes(key)) {
+        if (!["table"].includes(key)) {
             setProperty(record, key, value);
         }
     }
