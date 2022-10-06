@@ -18,7 +18,7 @@ export class Database {
             method,
             headers: {
                 Authorization: `Basic ${btoa("root:root")}`,
-                "Content-Type": "application/json",
+                Accept: "application/json",
                 NS: this.namespace,
                 DB: this.database,
             },
@@ -34,6 +34,11 @@ export class Database {
 
     async query(statement: string): Promise<Record<string, any>> {
         return await this.call("post", "/sql", statement);
+    }
+
+    async tables(): Promise<string[]> {
+        const result = await this.query("info for database");
+        return Object.keys(result.tb);
     }
 
     async create<T extends Identified>(
