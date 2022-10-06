@@ -19,7 +19,7 @@ export default function Sidebar({ collections, tenants }: SidebarProps) {
         <div>
             <ul className="menu rounded-box p-1 text-sm">
                 <li>
-                    <Link to="query">Query</Link>
+                    <Link to="database">Database</Link>
                 </li>
                 <li>
                     <a href="/admin/authentication" data-turbo-frame="_top">
