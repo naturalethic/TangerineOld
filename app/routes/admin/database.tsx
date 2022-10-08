@@ -6,6 +6,7 @@ import { useState } from "react";
 import FullTabs from "~/components/admin/FullTabs";
 import RoundedTabs from "~/components/admin/RoundedTabs";
 import Query from "~/components/admin/database/Query";
+import Table from "~/components/admin/database/Table";
 import { db } from "~/lib/database";
 import { getStorage, setStorage } from "~/lib/storage";
 
@@ -129,7 +130,7 @@ export default function QueryRoute() {
         }
     };
 
-    const onQueryChange = (content: any) => {
+    const onContentChange = (content: any) => {
         const tabs = [...contentTabs];
         tabs[activeContentTab].content = content;
         setContentTabs(tabs);
@@ -183,7 +184,15 @@ export default function QueryRoute() {
                         contentTabs[activeContentTab].type === "query" && (
                         <Query
                             content={contentTabs[activeContentTab].content!}
-                            onChange={onQueryChange}
+                            onChange={onContentChange}
+                        />
+                    )}
+                    {contentTabs.length > 0 &&
+                        contentTabs[activeContentTab].type === "table" && (
+                        <Table
+                            name={contentTabs[activeContentTab].value}
+                            content={contentTabs[activeContentTab].content!}
+                            onChange={onContentChange}
                         />
                     )}
                 </div>
