@@ -59,14 +59,14 @@ export default function Query({ content, onChange }: Props) {
         <div className="flex flex-col mt-2 h-full">
             <div className="flex flex-col h-1/2 relative">
                 <textarea
-                    className="bg-zinc-900 rounded py-1 px-2 h-full resize-none"
+                    className="bg-zinc-800 rounded py-1 px-2 h-full resize-none"
                     defaultValue={content.query}
                     onChange={updateContent}
                     ref={editor}
                 ></textarea>
                 <div className="flex flex-row justify-end text-sm mt-2 absolute right-2 bottom-2">
                     <div
-                        className="border rounded bg-orange-200 text-zinc-700 px-2 py-px border-orange-400 font-bold"
+                        className="rounded bg-orange-200 text-zinc-700 px-2 py-px font-bold"
                         onClick={submitQuery}
                     >
                         Execute
