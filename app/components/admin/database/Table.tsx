@@ -52,6 +52,9 @@ export default function Table({ name, content, onChange }: Props) {
     };
 
     useHotkeys("del", () => {
+        if (selectedRows.size === 0) {
+            return;
+        }
         action.submit(
             {
                 table: name,
@@ -66,7 +69,7 @@ export default function Table({ name, content, onChange }: Props) {
     const selectedClass = "bg-blue-500 text-white";
 
     return (
-        <div className="flex flex-col h-full relative">
+        <div className="flex flex-col h-full relative pt-2">
             <div className="flex flex-col bg-zinc-800 rounded pb-4 pt-8 h-full">
                 <table className="table-auto border-collapse text-sm">
                     {content && content.length > 0 && (
@@ -104,7 +107,7 @@ export default function Table({ name, content, onChange }: Props) {
                                         >
                                             {key === "id"
                                                 ? row[key].split(":")[1]
-                                                : row[key]}
+                                                : JSON.stringify(row[key])}
                                         </td>
                                     ))}
                                 </tr>

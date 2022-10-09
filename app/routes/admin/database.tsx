@@ -35,6 +35,7 @@ class ContentTab {
         if (type === "table") {
             this.label = value!;
             this.value = value!;
+            this.content = [];
         } else {
             let count = ContentTab.counter++;
             this.label = `Query ${count}`;
