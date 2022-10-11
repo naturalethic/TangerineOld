@@ -1,4 +1,3 @@
-import { customAlphabet } from "nanoid";
 import invariant from "tiny-invariant";
 
 import type { Identified } from "./types";
@@ -14,8 +13,4 @@ export function tid(table: string, id: string | number): string {
 
 export function rid(record: Identified): string {
     return record.id.split(":")[1];
-}
-
-export function genShortAlphaId() {
-    return customAlphabet("abcdefghijklmnopqrstuvwxyz", 8)();
 }
