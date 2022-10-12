@@ -60,7 +60,7 @@ export default function Query({ content, onChange }: Props) {
             <div className="flex flex-col h-1/2 relative">
                 <textarea
                     className="bg-zinc-800 rounded py-1 px-2 h-full resize-none"
-                    defaultValue={content.query}
+                    value={content.query}
                     onChange={updateContent}
                     ref={editor}
                 ></textarea>
