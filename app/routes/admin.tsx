@@ -1,5 +1,5 @@
 import { Outlet, useLocation, useNavigate } from "@remix-run/react";
-import { Select, SelectItem } from "~/components/Select";
+import { Select, SelectItem } from "~/components/select";
 
 export default function AdminRoute() {
     const route = useLocation().pathname;
@@ -12,7 +12,7 @@ export default function AdminRoute() {
                     Tangerine
                 </div>
                 <div className="flex-1 flex flex-row justify-center">
-                    <Select selectedItem={route} onChange={navigate}>
+                    <Select value={route} onChange={navigate}>
                         <SelectItem
                             label="Database Manager"
                             value="/admin/database"

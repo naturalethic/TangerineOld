@@ -3,10 +3,9 @@ import { json } from "@remix-run/node";
 import { useFetcher, useLoaderData } from "@remix-run/react";
 import { useEffect, useRef } from "react";
 import { useState } from "react";
-import FullTabs from "~/components/admin/FullTabs";
-import RoundedTabs from "~/components/admin/RoundedTabs";
 import Query from "~/components/admin/database/Query";
 import Table from "~/components/admin/database/Table";
+import { FullTabs, RoundedTabs, Tab } from "~/components/tabs";
 import { db } from "~/lib/database";
 import { getStorage, setStorage } from "~/lib/storage";
 
@@ -68,72 +67,67 @@ export default function QueryRoute() {
     };
 
     const onTableMenuClick = (name: string) => {
-        for (const tab of contentTabs) {
+        for (const tab of Object.values(contentTabs)) {
             if (tab.value === name) {
-                setActiveContentTab(contentTabs.indexOf(tab));
+                setContentTab(tab.value);
                 return;
             }
         }
-        setContentTabs([...contentTabs, new ContentTab("table", name)]);
-        setActiveContentTab(contentTabs.length);
+        const tab = new ContentTab("table", name);
+        setContentTabs({ ...contentTabs, ...{ [tab.value]: tab } });
+        setContentTab(tab.value);
     };
 
     const onQueryClick = () => {
-        setContentTabs([...contentTabs, new ContentTab("query")]);
-        setActiveContentTab(contentTabs.length);
+        const tab = new ContentTab("query");
+        setContentTabs({ ...contentTabs, ...{ [tab.value]: tab } });
+        setContentTab(tab.value);
     };
 
-    const leftTabs = [
-        {
-            label: "Tables",
-            value: "tables",
-        },
-        {
-            label: "Queries",
-            value: "queries",
-        },
-        {
-            label: "History",
-            value: "history",
-        },
-    ];
+    const [leftTab, setLeftTab] = useState("tables");
 
-    const [activeLeftTab, setActiveLeftTab] = useState(leftTabs[0]);
-
-    const [contentTabs, setContentTabs] = useState<ContentTab[]>([]);
-    const [activeContentTab, setActiveContentTab] = useState(0);
+    const [contentTabs, setContentTabs] = useState<Record<string, ContentTab>>(
+        {},
+    );
+    const [contentTab, setContentTab] = useState("");
 
     useEffect(() => {
-        const tmpTabs = getStorage("database-content-tabs", []);
+        const tabs: Record<string, ContentTab> = getStorage(
+            "database-content-tabs",
+            [],
+        );
         let counter = 1;
-        for (const tab of tmpTabs) {
+        Object.values(tabs).forEach((tab) => {
             if (tab.type === "query") {
                 counter = Math.max(
                     counter,
                     Number(tab.value.split("-")[1]) + 1,
                 );
             }
-        }
+        });
         ContentTab.counter = counter;
-        setContentTabs(tmpTabs);
+        setContentTabs(tabs);
+        setContentTab(getStorage("database-content-tab", ""));
     }, []);
 
     useEffect(() => {
         setStorage("database-content-tabs", contentTabs);
+        setStorage("database-content-tab", contentTab);
     }, [contentTabs]);
 
-    const onCloseContentTab = (index: number) => {
-        const tabs = [...contentTabs];
-        tabs.splice(index, 1);
+    const onCloseContentTab = (value: string) => {
+        const tabs = { ...contentTabs };
+        const index = Object.keys(tabs).indexOf(value);
+        delete tabs[value];
         setContentTabs(tabs);
-        if (activeContentTab === tabs.length) {
-            setActiveContentTab(activeContentTab - 1);
+        if (contentTab === value) {
+            setContentTab(Object.keys(tabs)[Math.max(0, index - 1)]);
         }
     };
 
     const onContentChange = (content: any) => {
-        const tabs = [...contentTabs];
-        tabs[activeContentTab].content = content;
+        const tabs = { ...contentTabs };
+        tabs[contentTab].content = content;
         setContentTabs(tabs);
     };
 
@@ -141,11 +135,11 @@ export default function QueryRoute() {
         <div className="flex flex-row py-2 select-none h-full">
             <div className="flex flex-col mt-2 mr-2">
                 <div className="h-6 flex flex-row items-center">
-                    <RoundedTabs
-                        items={leftTabs}
-                        active={activeLeftTab}
-                        onItemClick={(item) => setActiveLeftTab(item)}
-                    />
+                    <RoundedTabs value={leftTab} onChange={setLeftTab}>
+                        <Tab label="Tables" value="tables" />
+                        <Tab label="Queries" value="queries" />
+                        <Tab label="History" value="history" />
+                    </RoundedTabs>
                 </div>
                 <div className="flex flex-col text-sm ml-2 mt-4 space-y-1 bg-zic-800 flex-1 border-zinc-500">
                     {tables.map((table) => (
@@ -173,26 +167,32 @@ export default function QueryRoute() {
                         SQL
                     </div>
                     <FullTabs
-                        className="flex-1"
-                        items={contentTabs}
-                        active={activeContentTab}
-                        onItemClick={setActiveContentTab}
-                        onItemClose={onCloseContentTab}
-                    />
+                        value={contentTab}
+                        onChange={setContentTab}
+                        onClose={onCloseContentTab}
+                    >
+                        {Object.values(contentTabs).map((tab) => (
+                            <Tab
+                                key={tab.value}
+                                label={tab.label}
+                                value={tab.value}
+                            />
+                        ))}
+                    </FullTabs>
                 </div>
                 <div className="flex-1">
-                    {contentTabs.length > 0 &&
-                        contentTabs[activeContentTab].type === "query" && (
+                    {contentTabs[contentTab] &&
+                        contentTabs[contentTab].type === "query" && (
                         <Query
-                            content={contentTabs[activeContentTab].content!}
+                            content={contentTabs[contentTab].content}
                             onChange={onContentChange}
                         />
                     )}
-                    {contentTabs.length > 0 &&
-                        contentTabs[activeContentTab].type === "table" && (
+                    {contentTabs[contentTab] &&
+                        contentTabs[contentTab].type === "table" && (
                         <Table
-                            name={contentTabs[activeContentTab].value}
-                            content={contentTabs[activeContentTab].content!}
+                            name={contentTabs[contentTab].value}
+                            content={contentTabs[contentTab].content}
                             onChange={onContentChange}
                         />
                     )}

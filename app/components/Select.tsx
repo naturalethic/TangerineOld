@@ -4,11 +4,15 @@ import { AiFillCaretDown } from "react-icons/ai";
 
 interface SelectProps {
     children: React.ReactElement[];
-    selectedItem: string;
+    value: string;
     onChange: (value: string) => void;
 }
 
-export function Select({ children, selectedItem, onChange }: SelectProps) {
+export function Select({
+    children,
+    value: selectedItem,
+    onChange,
+}: SelectProps) {
     const [open, setOpen] = useState(false);
     const onMenuClick: MouseEventHandler = (event) => {
         const el = event.target as HTMLElement;
