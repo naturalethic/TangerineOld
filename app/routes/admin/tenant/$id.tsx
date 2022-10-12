@@ -94,7 +94,7 @@ function TenantProperties({ tenant }: TenantPropertiesProps) {
                         type="text"
                         name="name"
                         className="input text-primary-content input-bordered"
-                        defaultValue={tenant.name}
+                        value={tenant.name}
                     />
                 </label>
             </action.Form>
@@ -262,7 +262,7 @@ function TextFieldEdit({ field, value }: FieldEditProps) {
                 type="text"
                 name={field.name}
                 className="input text-primary-content input-bordered"
-                defaultValue={value}
+                value={value}
             />
         </label>
     );

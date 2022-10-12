@@ -48,7 +48,7 @@ class ContentTab {
     }
 }
 
-export default function QueryRoute() {
+export default function DatabaseRoute() {
     const { tables } = useLoaderData<LoaderData>();
 
     // const onQuerySelect: ChangeEventHandler<HTMLSelectElement> = (event) => {

@@ -92,7 +92,7 @@ function CollectionProperties({ collection }: CollectionPropertiesProps) {
                         type="text"
                         className="input input-bordered"
                         name="name"
-                        defaultValue={collection.name}
+                        value={collection.name}
                     />
                 </label>
             </div>
@@ -197,7 +197,7 @@ function FieldEdit({ initialField, index, onDelete }: FieldEditProps) {
                     type="text"
                     className="input text-primary-content"
                     name={`fields[${index}].name`}
-                    defaultValue={field.name}
+                    value={field.name}
                 />
             </label>
             <label className="input-group input-group-vertical input-group-sm">
@@ -205,7 +205,7 @@ function FieldEdit({ initialField, index, onDelete }: FieldEditProps) {
                 <select
                     className="select"
                     name={`fields[${index}].type`}
-                    defaultValue={field.type}
+                    value={field.type}
                     onChange={(e) =>
                         onChangeType(e.target.value as Field["type"])
                     }
@@ -242,7 +242,7 @@ function RadioFieldEdit({ field, index }: RadioFieldEditProps) {
                 type="text"
                 className="input input-bordered"
                 name={`fields[${index}].values`}
-                defaultValue={field.values.join(", ")}
+                value={field.values.join(", ")}
             />
         </label>
     );
