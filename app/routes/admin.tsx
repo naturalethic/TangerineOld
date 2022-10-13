@@ -1,5 +1,6 @@
-import { Outlet, useLocation, useNavigate } from "@remix-run/react";
 import { Item, Select } from "~/kit";
+
+import { Outlet, useLocation, useNavigate } from "@remix-run/react";
 
 export default function AdminRoute() {
     const route = useLocation().pathname;

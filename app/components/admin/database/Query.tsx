@@ -1,6 +1,8 @@
-import { useFetcher } from "@remix-run/react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { JSONTree } from "react-json-tree";
+
+import { useFetcher } from "@remix-run/react";
+
 import type { ActionData } from "~/routes/admin/database/query";
 
 interface Content {

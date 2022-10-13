@@ -1,6 +1,7 @@
 import type { ActionFunction } from "@remix-run/node";
-import { json } from "@remix-run/node";
 import { db } from "~/lib/database";
+
+import { json } from "@remix-run/node";
 
 export type ActionData = {
     result: any | null;

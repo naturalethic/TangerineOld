@@ -1,6 +1,4 @@
 import type { ActionFunction, LoaderFunction } from "@remix-run/node";
-import { json } from "@remix-run/node";
-import { useFetcher, useLoaderData } from "@remix-run/react";
 import { setProperty } from "dot-prop";
 import { useEffect, useRef, useState } from "react";
 import { MdClose, MdDelete } from "react-icons/md";
@@ -8,9 +6,12 @@ import { ReactSortable } from "react-sortablejs";
 import { db } from "~/lib/database";
 import { inv, rid } from "~/lib/helper";
 import { Collection } from "~/lib/model";
-import type { Field, RadioField } from "~/lib/types";
 import { fields } from "~/lib/types";
 
+import { json } from "@remix-run/node";
+import { useFetcher, useLoaderData } from "@remix-run/react";
+
+import type { Field, RadioField } from "~/lib/types";
 type LoaderData = {
     collection: Collection;
 };

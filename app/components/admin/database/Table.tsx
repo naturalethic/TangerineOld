@@ -1,6 +1,8 @@
-import { useFetcher } from "@remix-run/react";
 import { useEffect, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
+
+import { useFetcher } from "@remix-run/react";
+
 import type { ActionData } from "~/routes/admin/database/query";
 
 interface Props {
