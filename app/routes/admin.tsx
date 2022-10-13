@@ -1,5 +1,5 @@
 import { Outlet, useLocation, useNavigate } from "@remix-run/react";
-import { Select, SelectItem } from "~/components/select";
+import { Item, Select } from "~/kit";
 
 export default function AdminRoute() {
     const route = useLocation().pathname;
@@ -13,18 +13,15 @@ export default function AdminRoute() {
                 </div>
                 <div className="flex-1 flex flex-row justify-center">
                     <Select value={route} onChange={navigate}>
-                        <SelectItem
+                        <Item
                             label="Database Manager"
                             value="/admin/database"
                         />
-                        <SelectItem
+                        <Item
                             label="Collection Manager"
                             value="/admin/collection"
                         />
-                        <SelectItem
-                            label="Tenant Manager"
-                            value="/admin/tenant"
-                        />
+                        <Item label="Tenant Manager" value="/admin/tenant" />
                     </Select>
                 </div>
                 <div className="w-64"></div>

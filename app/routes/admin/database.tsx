@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 import { useState } from "react";
 import Query from "~/components/admin/database/Query";
 import Table from "~/components/admin/database/Table";
-import { FullTabs, RoundedTabs, Tab } from "~/components/tabs";
+import { FullTabs, Item, RoundedTabs } from "~/kit";
 import { db } from "~/lib/database";
 import { getStorage, setStorage } from "~/lib/storage";
 
@@ -136,9 +136,9 @@ export default function DatabaseRoute() {
             <div className="flex flex-col mt-2 mr-2">
                 <div className="h-6 flex flex-row items-center">
                     <RoundedTabs value={leftTab} onChange={setLeftTab}>
-                        <Tab label="Tables" value="tables" />
-                        <Tab label="Queries" value="queries" />
-                        <Tab label="History" value="history" />
+                        <Item label="Tables" value="tables" />
+                        <Item label="Queries" value="queries" />
+                        <Item label="History" value="history" />
                     </RoundedTabs>
                 </div>
                 <div className="flex flex-col text-sm ml-2 mt-4 space-y-1 bg-zic-800 flex-1 border-zinc-500">
@@ -172,7 +172,7 @@ export default function DatabaseRoute() {
                         onClose={onCloseContentTab}
                     >
                         {Object.values(contentTabs).map((tab) => (
-                            <Tab
+                            <Item
                                 key={tab.value}
                                 label={tab.label}
                                 value={tab.value}

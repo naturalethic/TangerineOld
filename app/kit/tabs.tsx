@@ -1,15 +1,15 @@
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { MouseEventHandler } from "react";
 import { MdClose } from "react-icons/md";
 
-interface TabProps {
-    label: string;
-    value: string;
-}
+// interface ItemProps {
+//     label: string;
+//     value: string;
+// }
 
-export function Tab(_: TabProps) {
-    return <div />;
-}
+// export function Item(_: ItemProps) {
+//     return <div />;
+// }
 
 interface TabsProps {
     children: React.ReactElement[] | React.ReactElement;
