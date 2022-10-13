@@ -1,8 +1,11 @@
 {
-    "editor.defaultFormatter": "rvest.vs-code-prettier-eslint",
+    "editor.defaultFormatter": "rome.rome",
     "editor.formatOnPaste": false,
     "editor.formatOnType": false,
     "editor.formatOnSave": true,
     "editor.formatOnSaveMode": "file",
-    "files.autoSave": "onFocusChange"
+    "files.autoSave": "onFocusChange",
+    "importSorter.generalConfiguration.sortOnBeforeSave": true,
+    "importSorter.importStringConfiguration.quoteMark": "double",
+    "importSorter.sortConfiguration.removeUnusedImports": true
 }

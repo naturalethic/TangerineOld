@@ -1,8 +1,9 @@
-import { Link } from "@remix-run/react";
 import { capitalize, pluralize } from "inflection";
 import { useState } from "react";
 import { rid } from "~/lib/helper";
 import { Collection, Tenant } from "~/lib/model";
+
+import { Link } from "@remix-run/react";
 
 import AddModal from "./AddModal";
 

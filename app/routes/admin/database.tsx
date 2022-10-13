@@ -1,13 +1,13 @@
 import type { LoaderFunction } from "@remix-run/node";
-import { json } from "@remix-run/node";
-import { useFetcher, useLoaderData } from "@remix-run/react";
-import { useEffect, useRef } from "react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Query from "~/components/admin/database/Query";
 import Table from "~/components/admin/database/Table";
 import { FullTabs, Item, RoundedTabs } from "~/kit";
 import { db } from "~/lib/database";
 import { getStorage, setStorage } from "~/lib/storage";
+
+import { json } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
 
 type LoaderData = {
     tables: string[];

@@ -1,7 +1,7 @@
-import { useFetcher } from "@remix-run/react";
 import { singularize } from "inflection";
-import { useEffect, useRef } from "react";
-import { FormEvent } from "react";
+import { FormEvent, useEffect, useRef } from "react";
+
+import { useFetcher } from "@remix-run/react";
 
 interface AddModalProps {
     table: string;

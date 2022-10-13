@@ -1,16 +1,15 @@
+import { capitalize, pluralize, singularize } from "inflection";
+import { useEffect, useState } from "react";
+import { Item, RoundedTabs, Select } from "~/kit";
+import { Form, Hidden, Label, Submit, Text } from "~/kit/form";
+import { Collection } from "~/lib/model";
+import { Field, fields as fieldTypes } from "~/lib/types";
+
 import { faker } from "@faker-js/faker";
-import type { LoaderFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useFetcher, useLoaderData } from "@remix-run/react";
-import { capitalize, pluralize, singularize } from "inflection";
-import { useEffect, useRef, useState } from "react";
-import { Item, RoundedTabs, Select } from "~/kit";
-import { db } from "~/lib/database";
-import { Collection } from "~/lib/model";
-import { Field } from "~/lib/types";
-import { fields as fieldTypes } from "~/lib/types";
-import {Form, Text, Hidden, Label, Submit} from "~/kit/form";
 
+import type { LoaderFunction } from "@remix-run/node";
 type LoaderData = {
     collections: Collection[];
 };

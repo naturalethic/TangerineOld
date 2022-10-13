@@ -1,7 +1,8 @@
 import type { ActionFunction } from "@remix-run/node";
-import { redirect } from "@remix-run/node";
 import { db } from "~/lib/database";
 import { rid } from "~/lib/helper";
+
+import { redirect } from "@remix-run/node";
 
 export const action: ActionFunction = async ({ request }) => {
     const form = await request.formData();
