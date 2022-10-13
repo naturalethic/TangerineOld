@@ -1,14 +1,15 @@
+import { faker } from "@faker-js/faker";
 import type { LoaderFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useFetcher, useLoaderData } from "@remix-run/react";
 import { capitalize, pluralize, singularize } from "inflection";
 import { useEffect, useRef, useState } from "react";
-import { MdAddCircle } from "react-icons/md";
-import { Select, SelectItem } from "~/components/select";
-import { RoundedTabs, Tab } from "~/components/tabs";
+import { Item, RoundedTabs, Select } from "~/kit";
 import { db } from "~/lib/database";
 import { Collection } from "~/lib/model";
 import { Field } from "~/lib/types";
+import { fields as fieldTypes } from "~/lib/types";
+import {Form, Text, Hidden, Label, Submit} from "~/kit/form";
 
 type LoaderData = {
     collections: Collection[];
@@ -46,7 +47,7 @@ export default function CollectionRoute() {
             <div className="flex flex-col mt-2 mr-2">
                 <div className="h-6 flex flex-row items-center">
                     <RoundedTabs value="collections">
-                        <Tab label="Collections" value="collections" />
+                        <Item label="Collections" value="collections" />
                     </RoundedTabs>
                 </div>
                 <div className="flex flex-col text-sm ml-2 mt-4 space-y-1 bg-zic-800 flex-1 border-zinc-500">
@@ -93,10 +94,17 @@ function CollectionEditor({ collection }: CollectionEditorProps) {
     const [fields, setFields] = useState<Field[]>(collection.fields);
 
     const onAddField = () => {
-        setFields([
-            ...fields,
-            { name: Math.random().toString(), type: "text" },
-        ]);
+        const name = faker.word.noun();
+        const type = faker.helpers.arrayElement(fieldTypes) as Field["type"];
+        const field =
+            type === "radio" ? { name, type, values: [] } : { name, type };
+        setFields([...fields, field]);
+    };
+
+    const onChangeFieldType = (index: number, type: Field["type"]) => {
+        const newFields = [...fields];
+        newFields[index].type = type;
+        setFields(newFields);
     };
 
     const cellClass = "border border-zinc-600 px-2 py-1";
@@ -120,14 +128,14 @@ function CollectionEditor({ collection }: CollectionEditorProps) {
                                         <th className="font-normal px-3">
                                             Type
                                         </th>
+                                        <th className="font-normal px-3">
+                                            Values
+                                        </th>
                                     </tr>
                                 </thead>
                                 <tbody className="bg-zinc-800">
                                     {fields.map((field, i) => (
-                                        <tr
-                                            key={field.name}
-                                            className="last:border-b"
-                                        >
+                                        <tr key={field.name}>
                                             <td className={cellClass}>
                                                 <Text
                                                     name={`field.${i}.name`}
@@ -138,18 +146,57 @@ function CollectionEditor({ collection }: CollectionEditorProps) {
                                             </td>
                                             <td className={cellClass}>
                                                 <Select
-                                                    value="text"
-                                                    onChange={() => {}}
+                                                    value={field.type}
+                                                    border={false}
+                                                    onChange={(value) =>
+                                                        onChangeFieldType(
+                                                            i,
+                                                            value as Field["type"],
+                                                        )
+                                                    }
                                                 >
-                                                    <SelectItem
+                                                    <Item
+                                                        value="checkbox"
+                                                        label="Checkbox"
+                                                    />
+                                                    <Item
                                                         value="text"
                                                         label="Text"
                                                     />
-                                                    <SelectItem
-                                                        value="number"
-                                                        label="Number"
+                                                    <Item
+                                                        value="radio"
+                                                        label="Radio"
+                                                    />
+                                                    <Item
+                                                        value="date"
+                                                        label="Date"
+                                                    />
+                                                    <Item
+                                                        value="time"
+                                                        label="Time"
+                                                    />
+                                                    <Item
+                                                        value="datetime"
+                                                        label="Datetime"
                                                     />
                                                 </Select>
+                                            </td>
+                                            <td className={cellClass}>
+                                                <Text
+                                                    name={`field.${i}.values`}
+                                                    border={false}
+                                                    ring={false}
+                                                    defaultValue={
+                                                        field.type === "radio"
+                                                            ? field.values.join(
+                                                                ", ",
+                                                            )
+                                                            : ""
+                                                    }
+                                                    disabled={
+                                                        field.type !== "radio"
+                                                    }
+                                                />
                                             </td>
                                         </tr>
                                     ))}
@@ -161,99 +208,5 @@ function CollectionEditor({ collection }: CollectionEditorProps) {
                 </Form>
             </div>
         </div>
-    );
-}
-
-interface FormProps {
-    children: React.ReactNode;
-    action: string;
-}
-
-function Form({ children, action }: FormProps) {
-    const fetcher = useFetcher();
-    const form = useRef<HTMLFormElement>(null);
-
-    const onSubmit = function (event: React.FormEvent<HTMLFormElement>) {
-        event.preventDefault();
-        fetcher.submit(form.current);
-    };
-
-    return (
-        <fetcher.Form
-            className="flex flex-col space-y-4"
-            onSubmit={onSubmit}
-            action={action}
-            method="post"
-            ref={form}
-        >
-            {children}
-        </fetcher.Form>
-    );
-}
-
-interface LabelProps {
-    children?: React.ReactNode;
-    label: string;
-    onAdd?: () => void;
-}
-
-function Label({ children, label, onAdd }: LabelProps) {
-    return (
-        <label>
-            <div className="px-2 pb-1 text-zinc-400 flex flex-row items-center space-x-1">
-                <div>{capitalize(label)}</div>
-                {onAdd && (
-                    <MdAddCircle className="cursor-pointer" onClick={onAdd} />
-                )}
-            </div>
-            {children}
-        </label>
-    );
-}
-
-interface TextProps {
-    name: string;
-    defaultValue: string;
-    border?: boolean;
-    ring?: boolean;
-}
-
-function Text({ name, defaultValue, border = true, ring = true }: TextProps) {
-    let className =
-        "bg-zinc-800 text-zinc-400 rounded px-2 py-1 border-zinc-500 w-full ring-0 outline-0";
-    if (border) {
-        className += " border";
-    }
-    if (ring) {
-        className += " focus:ring-1 focus:ring-zinc-400";
-    }
-    return (
-        <input
-            className={className}
-            type="text"
-            name={name}
-            defaultValue={defaultValue}
-        />
-    );
-}
-
-interface HiddenProps {
-    name: string;
-    value: string;
-}
-
-function Hidden({ name, value }: HiddenProps) {
-    return <input type="hidden" name={name} value={value} />;
-}
-
-interface SubmitProps {
-    label?: string;
-}
-
-function Submit({ label = "Submit" }: SubmitProps) {
-    return (
-        <button className="bg-zinc-800 text-zinc-400 rounded px-2 py-1 border border-zinc-500">
-            {label}
-        </button>
     );
 }

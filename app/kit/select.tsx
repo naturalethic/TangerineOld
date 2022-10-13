@@ -1,19 +1,24 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { MouseEventHandler, useState } from "react";
+import { MouseEventHandler, useEffect, useState } from "react";
 import { AiFillCaretDown } from "react-icons/ai";
 
 interface SelectProps {
     children: React.ReactElement[];
-    value: string;
+    value?: string;
+    border?: boolean;
     onChange: (value: string) => void;
+    className?: string;
 }
 
 export function Select({
     children,
-    value: selectedItem,
+    value,
+    border = true,
     onChange,
+    className,
 }: SelectProps) {
     const [open, setOpen] = useState(false);
+
     const onMenuClick: MouseEventHandler = (event) => {
         const el = event.target as HTMLElement;
         if (el.dataset.value) {
@@ -21,8 +26,20 @@ export function Select({
             onChange(el.dataset.value);
         }
     };
+
+    const items = children
+        .filter((child) => child.props.value !== value)
+        .map((it) => (
+            <div
+                key={it.props.value}
+                className="hover:text-zinc-700 hover:bg-zinc-300 pl-2 pr-2 rounded select-none cursor-pointer"
+                data-value={it.props.value}
+            >
+                {it.props.label}
+            </div>
+        ));
     return (
-        <div>
+        <div className={className}>
             {open && (
                 <div
                     className="absolute bg-black inset-0 z-40"
@@ -32,12 +49,14 @@ export function Select({
             )}
             <div className="text-sm relative">
                 <div
-                    className="flex flex-row cursor-pointer select-none border pl-4 pr-2 py-1 rounded border-zinc-500"
+                    className={`flex flex-row cursor-pointer select-none pl-4 pr-2 py-1 rounded border-zinc-500 ${
+                        border && "border"
+                    }`}
                     onClick={() => setOpen(!open)}
                 >
                     <div>
                         {children.map((it) =>
-                            it.props.value === selectedItem ? (
+                            it.props.value === value ? (
                                 <div key={it.props.value}>{it.props.label}</div>
                             ) : (
                                 <div
@@ -49,6 +68,7 @@ export function Select({
                             ),
                         )}
                     </div>
+                    <div className="flex-1"></div>
                     <AiFillCaretDown className="mt-1" />
                 </div>
                 <AnimatePresence>
@@ -64,29 +84,11 @@ export function Select({
                                 width: "100%",
                             }}
                         >
-                            {children.filter(
-                                (it) => it.props.value !== selectedItem,
-                            )}
+                            {items}
                         </motion.div>
                     )}
                 </AnimatePresence>
             </div>
-        </div>
-    );
-}
-
-interface SelectItemProps {
-    label: string;
-    value: string;
-}
-
-export function SelectItem({ label, value }: SelectItemProps) {
-    return (
-        <div
-            className="hover:text-zinc-700 hover:bg-zinc-300 pl-2 pr-2 rounded select-none cursor-pointer"
-            data-value={value}
-        >
-            {label}
         </div>
     );
 }
