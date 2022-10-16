@@ -21,12 +21,12 @@
 
 /* Forms */
 
-form > div {
-    /* @apply border; */
-}
+/* form > div {
+    @apply border;
+} */
 
 form > div > label {
-    @apply text-zinc-300 block text-sm mb-1;
+    @apply text-zinc-300 block text-sm mb-1 mt-2;
 }
 
 form input {
@@ -34,6 +34,9 @@ form input {
 }
 
 form > button {
-    @apply mt-8 px-2 py-1 border rounded bg-zinc-300 border-zinc-700 text-zinc-700;
+    @apply mt-4 px-6 py-1 border rounded bg-zinc-300 border-zinc-700 text-zinc-700;
 }
 
+form  select {
+    @apply border rounded border-zinc-400 bg-zinc-800 text-zinc-400 px-2 py-1;
+}
