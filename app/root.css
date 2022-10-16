@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+    font-family: Sacramento;
+    src: url(/fonts/Sacramento-Regular.ttf);
+}
+
+@font-face {
+    font-family: Iosevka;
+    src: url(/fonts/Iosevka-Regular.woff2);
+    font-weight: 100 600;
+}
+
+@font-face {
+    font-family: Iosevka;
+    src: url(/fonts/Iosevka-Bold.woff2);
+    font-weight: 700 900;
+}
+
+/* Forms */
+
+form > div {
+    /* @apply border; */
+}
+
+form > div > label {
+    @apply text-zinc-300 block text-sm mb-1;
+}
+
+form input {
+    @apply border rounded border-zinc-400 bg-zinc-800 text-zinc-400 px-2 py-1;
+}
+
+form > button {
+    @apply mt-8 px-2 py-1 border rounded bg-zinc-300 border-zinc-700 text-zinc-700;
+}
+

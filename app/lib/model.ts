@@ -1,45 +1,43 @@
 import { db } from "./database";
-import { Field, Identified } from "./types";
+import { Collection, Field, Tenant } from "./types";
 
-export class Tenant implements Identified {
-    id: string = "";
-    name: string = "";
-
-    constructor(init: Partial<Tenant> = {}) {
-        Object.assign(this, init);
-    }
-
-    static async all(): Promise<Tenant[]> {
-        const tenants = (await db.select<Tenant>("_tenant")).map(
-            (it) => new Tenant(it),
-        );
-        tenants.sort((a: Tenant, b: Tenant) => {
-            return a.name.localeCompare(b.name);
-        });
-        return tenants;
-    }
-
-    static async get(id: string): Promise<Tenant> {
-        return new Tenant(await db.select<Tenant>("_tenant", id));
-    }
-}
-
-export class Collection implements Identified {
-    id: string = "";
-    name: string = "";
-    fields: Field[] = [];
-
-    constructor(init: Partial<Collection> = {}) {
-        Object.assign(this, init);
-    }
-
-    static async all(): Promise<Collection[]> {
-        const collections = (await db.select<Collection>("_collection")).map(
-            (it) => new Collection(it),
-        );
-        collections.sort((a: Collection, b: Collection) =>
-            a.name.localeCompare(b.name),
-        );
-        return collections;
-    }
-}
+export default {
+	collection: {
+		async all(): Promise<Collection[]> {
+			const collections = await db.select<Collection>("_collection");
+			collections.sort((a: Collection, b: Collection) =>
+				a.name.localeCompare(b.name),
+			);
+			return collections;
+		},
+		async get(id: string): Promise<Collection> {
+			return await db.select<Collection>("_collection", id);
+		},
+	},
+	field: {
+		async all(collection?: string): Promise<Field[]> {
+			let fields: Field[];
+			if (collection) {
+				fields = (await db.query(
+					`SELECT * FROM _field WHERE collection = _collection:${collection}`,
+				)) as Field[];
+			} else {
+				fields = await db.select<Field>("_field");
+			}
+			fields.sort((a: Field, b: Field) => a.name.localeCompare(b.name));
+			return fields;
+		},
+	},
+	tenant: {
+		async all(): Promise<Tenant[]> {
+			const tenants = await db.select<Tenant>("_tenant");
+			tenants.sort((a: Tenant, b: Tenant) => {
+				return a.name.localeCompare(b.name);
+			});
+			return tenants;
+		},
+		async get(id: string): Promise<Tenant> {
+			return await db.select<Tenant>("_tenant", id);
+		},
+	},
+};

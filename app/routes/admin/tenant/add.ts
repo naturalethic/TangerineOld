@@ -1,12 +1,12 @@
-import type { ActionFunction } from "@remix-run/node";
-import { db } from "~/lib/database";
-import { rid } from "~/lib/helper";
+// import type { ActionFunction } from "@remix-run/node";
+// import { db } from "~/lib/database";
+// import { rid } from "~/lib/helper";
 
-import { redirect } from "@remix-run/node";
+// import { redirect } from "@remix-run/node";
 
-export const action: ActionFunction = async ({ request }) => {
-    const form = await request.formData();
-    const record = JSON.parse(form.get("record") as string);
-    const item = await db.create("_tenant", record);
-    return redirect(`/admin/tenant/${rid(item)}`);
-};
+// export const action: ActionFunction = async ({ request }) => {
+//     const form = await request.formData();
+//     const record = JSON.parse(form.get("record") as string);
+//     const item = await db.create("_tenant", record);
+//     return redirect(`/admin/tenant/${rid(item)}`);
+// };
