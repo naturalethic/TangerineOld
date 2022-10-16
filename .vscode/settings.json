@@ -5,7 +5,21 @@
     "editor.formatOnSave": true,
     "editor.formatOnSaveMode": "file",
     "files.autoSave": "onFocusChange",
-    "importSorter.generalConfiguration.sortOnBeforeSave": true,
-    "importSorter.importStringConfiguration.quoteMark": "double",
-    "importSorter.sortConfiguration.removeUnusedImports": true
+    "[jsonc]": {
+        "editor.defaultFormatter": "vscode.json-language-features"
+    },
+    "files.associations": {
+        "*.css": "tailwindcss"
+    },
+    "editor.quickSuggestions": {
+        "strings": true
+    },
+    "tsImportSorter.configuration.groupRules": [
+        {},
+        "^[~]",
+        "^[.]"
+    ],
+    "tsImportSorter.configuration.keepUnused": [
+        ".*"
+    ],
 }

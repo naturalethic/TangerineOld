@@ -1,49 +1,36 @@
-export interface Identified {
-    id: string;
-}
+import { z } from "zod";
 
-export interface Configuration extends Identified {
-    authenticationCollection: string;
-    authenticationUsernameField: string;
-    authenticationPasswordField: string;
-}
+export type Identified = z.infer<typeof Identified>;
+export const Identified = z.object({
+	id: z.string(),
+});
 
-export interface BaseField {
-    name: string;
-    type: string;
-}
+export type Collection = z.infer<typeof Collection>;
+export const Collection = Identified.extend({
+	name: z.string(),
+});
 
-export interface CheckboxField extends BaseField {
-    type: "checkbox";
-}
+export type Field = z.infer<typeof Field>;
+export const Field = Identified.extend({
+	collection: z.string(),
+	name: z.string(),
+	type: z.enum(["checkbox", "text", "radio", "date", "time", "datetime"]),
+	values: z.string().array().optional(),
+}).transform((field, ctx) => {
+	if (field.type === "radio" && !field.values) {
+		field.values = [];
+	}
+	if (field.type !== "radio" && field.values) {
+		ctx.addIssue({
+			code: z.ZodIssueCode.custom,
+			message: "Values are only allowed for radio fields",
+		});
+		return z.NEVER;
+	}
+	return field;
+});
 
-export interface TextField extends BaseField {
-    type: "text";
-}
-
-export interface RadioField extends BaseField {
-    type: "radio";
-    values: string[];
-}
-
-export interface DateField extends BaseField {
-    type: "date";
-}
-
-export interface TimeField extends BaseField {
-    type: "time";
-}
-
-export interface DateTimeField extends BaseField {
-    type: "datetime";
-}
-
-export type Field =
-    | CheckboxField
-    | TextField
-    | RadioField
-    | DateField
-    | TimeField
-    | DateTimeField;
-
-export const fields = ["checkbox", "text", "radio", "date", "time", "datetime"];
+export type Tenant = z.infer<typeof Tenant>;
+export const Tenant = Identified.extend({
+	name: z.string(),
+});

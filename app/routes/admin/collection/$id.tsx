@@ -1,250 +1,161 @@
-import type { ActionFunction, LoaderFunction } from "@remix-run/node";
-import { setProperty } from "dot-prop";
-import { useEffect, useRef, useState } from "react";
-import { MdClose, MdDelete } from "react-icons/md";
-import { ReactSortable } from "react-sortablejs";
+import { makeDomainFunction } from "domain-functions";
+import { Form, formAction } from "remix-forms";
+import { z } from "zod";
 import { db } from "~/lib/database";
-import { inv, rid } from "~/lib/helper";
-import { Collection } from "~/lib/model";
-import { fields } from "~/lib/types";
+import model from "~/lib/model";
+import { Collection, Field } from "~/lib/types";
 
-import { json } from "@remix-run/node";
-import { useFetcher, useLoaderData } from "@remix-run/react";
+import { ActionFunction, json } from "@remix-run/node";
+import { useLoaderData } from "@remix-run/react";
 
-import type { Field, RadioField } from "~/lib/types";
+import type { LoaderFunction } from "@remix-run/node";
+
+const Params = z.object({
+	id: z.string(),
+});
+
 type LoaderData = {
-    collection: Collection;
+	collection: Collection;
+	fields: Field[];
 };
 
 export const loader: LoaderFunction = async ({ params }) => {
-    const id = inv(params.id, "Collection ID is required");
-    const collection = await db.select<Collection>("_collection", id);
-    return json<LoaderData>({ collection });
+	const { id } = Params.parse(params);
+	const collection = await model.collection.get(id);
+	const fields = await model.field.all(id);
+	return json({ collection, fields });
 };
 
-export const action: ActionFunction = async ({ request }) => {
-    const form = await request.formData();
-    const collection = new Collection();
-    for (const [key, value] of form.entries()) {
-        setProperty(collection, key, value);
-    }
-    for (const field of collection.fields) {
-        if (field.type === "radio") {
-            field.values = (field as any).values
-                .split(",")
-                .map((it: string) => it.trim())
-                .filter((it: string) => it);
-        }
-    }
-    await db.update(collection);
-    return null;
-};
+const mutation = makeDomainFunction(Collection)(async (collection) => {
+	return await db.update(collection);
+});
 
-export default function CollectionRoute() {
-    const { collection } = useLoaderData() as LoaderData;
-    const action = useFetcher();
-    const form = useRef<HTMLFormElement>(null);
+export const action: ActionFunction = async ({ request }) =>
+	formAction({ request, schema: Collection, mutation });
 
-    const onSave = () => {
-        form.current!.submit();
-    };
+export default function CollectionRecordRoute() {
+	const { collection, fields } = useLoaderData<LoaderData>();
 
-    const onDelete = () => {
-        action.submit(
-            { id: rid(collection), table: "_collection" },
-            { method: "post", action: "/admin/delete" },
-        );
-    };
+	// const [fields, setFields] = useState<Field[]>(collection.fields);
 
-    return (
-        <div className="flex flex-col space-y-4">
-            <action.Form method="post" ref={form}>
-                <input type="hidden" name="id" value={collection.id} />
-                <input type="hidden" name="name" value={collection.name} />
-                <div className="flex flex-row space-x-4">
-                    {/* <CollectionProperties collection={collection} /> */}
-                    <CollectionFields collection={collection} />
-                </div>
-            </action.Form>
-            <div className="flex flex-row">
-                <div className="btn btn-xl w-64" onClick={onSave}>
-                    Save
-                </div>
-                <div className="flex-1"></div>
-                <div className="btn btn-xl" onClick={onDelete}>
-                    <MdDelete size={24} />
-                </div>
-            </div>
-        </div>
-    );
-}
+	// const onAddField = () => {
+	// 	const name = faker.word.noun();
+	// 	const type = faker.helpers.arrayElement([
+	// 		"checkbox",
+	// 		"text",
+	// 		"radio",
+	// 		"date",
+	// 		"time",
+	// 		"datetime",
+	// 	]) as Field["type"];
+	// 	const field = Field.parse({ name, type });
+	// 	// type === "radio" ? { name, type, values: [] } : { name, type };
+	// 	setFields([...fields, field]);
+	// };
 
-interface CollectionPropertiesProps {
-    collection: Collection;
-}
+	// const onChangeFieldType = (index: number, type: Field["type"]) => {
+	// 	const newFields = [...fields];
+	// 	newFields[index].type = type;
+	// 	setFields(newFields);
+	// };
 
-function CollectionProperties({ collection }: CollectionPropertiesProps) {
-    return (
-        <div className="card bg-neutral" key={collection.id}>
-            <div className="card-body">
-                <label className="input-group input-group-vertical input-group-sm">
-                    <span>NAME</span>
-                    <input
-                        type="text"
-                        className="input input-bordered"
-                        name="name"
-                        value={collection.name}
-                    />
-                </label>
-            </div>
-        </div>
-    );
-}
+	// const cellClass = "border border-zinc-600 px-2 py-1";
 
-interface CollectionFieldsProps {
-    collection: Collection;
-}
+	// const validator = withZod(Collection);
 
-interface FieldItem {
-    id: string;
-    field: Field;
-}
+	const onClickNewField = () => {
+		// const name = prompt("Collection name");
+		// if (name) {
+		// 	action.submit(
+		// 		{ name: singularize(name).toLowerCase() },
+		// 		{ method: "post", action: "/admin/collection/create" },
+		// 	);
+		// }
+	};
 
-function CollectionFields({ collection }: CollectionFieldsProps) {
-    const generateFieldItems = (fields: Field[]) => {
-        return fields.map((field, i) => ({
-            id: `${collection.id}-${i}`,
-            field,
-        }));
-    };
+	return (
+		<div className="flex flex-col bg-zinc-800 rounded h-full px-4 py-4">
+			<Form
+				// action="/admin/collection/update"
+				// method="post"
+				schema={Collection}
+				values={collection}
+				hiddenFields={["id"]}
+				buttonLabel="Save"
+				pendingButtonLabel="Save"
+			/>
+			<div className="mt-4">Fields</div>
+			<div
+				className="text-xs border py-px px-1 rounded border-zinc-400 text-zinc-400 bg-zinc-600 cursor-pointer text-center"
+				// onClick={onClickNew}
+			>
+				NEW
+			</div>
 
-    const [items, setItems] = useState<FieldItem[]>(
-        generateFieldItems(collection.fields),
-    );
-
-    useEffect(() => {
-        setItems(generateFieldItems(collection.fields));
-    }, [collection]);
-
-    const onAddField = () => {
-        let name = "field1";
-        let number = 1;
-        while (items.some((item) => item.field.name === name)) {
-            number++;
-            name = `field${number}`;
-        }
-        setItems([
-            ...items,
-            {
-                id: `${collection.id}-${items.length}`,
-                field: { name, type: "text" },
-            },
-        ]);
-    };
-
-    const onDeleteField = (index: number) => {
-        items.splice(index, 1);
-        setItems([...items]);
-    };
-
-    return (
-        <div className="card bg-neutral flex-1">
-            <div className="card-body">
-                <div className="card-title">
-                    <div className="btn bg-base-200" onClick={onAddField}>
-                        Add field
-                    </div>
-                </div>
-                <div className="flex flex-col collection-field-editors">
-                    <ReactSortable list={items} setList={setItems}>
-                        {items.map((item, i) => (
-                            <FieldEdit
-                                key={item.id}
-                                initialField={item.field}
-                                index={i}
-                                onDelete={() => onDeleteField(i)}
-                            />
-                        ))}
-                    </ReactSortable>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-interface FieldEditProps {
-    initialField: Field;
-    index: number;
-    onDelete: () => void;
-}
-
-function FieldEdit({ initialField, index, onDelete }: FieldEditProps) {
-    const [field, setField] = useState(initialField);
-
-    const onChangeType = (type: Field["type"]) => {
-        switch (type) {
-        case "radio":
-            setField({ name: field.name, type, values: [] });
-            break;
-        default:
-            setField({ name: field.name, type });
-        }
-    };
-    return (
-        <div className="m-2 flex flex-row space-x-2 p-2 bg-slate-700 rounded">
-            <label className="input-group input-group-vertical input-group-sm">
-                <span className="relative">NAME</span>
-                <input
-                    type="text"
-                    className="input text-primary-content"
-                    name={`fields[${index}].name`}
-                    value={field.name}
-                />
-            </label>
-            <label className="input-group input-group-vertical input-group-sm">
-                <span>TYPE</span>
-                <select
-                    className="select"
-                    name={`fields[${index}].type`}
-                    value={field.type}
-                    onChange={(e) =>
-                        onChangeType(e.target.value as Field["type"])
-                    }
-                >
-                    {fields.map((type) => (
-                        <option key={type} value={type}>
-                            {type}
-                        </option>
-                    ))}
-                </select>
-            </label>
-            {field.type === "radio" && (
-                <RadioFieldEdit field={field} index={index} />
-            )}
-            <div className="flex flex-row items-start">
-                <button className="opacity-40" onClick={onDelete}>
-                    <MdClose />
-                </button>
-            </div>
-        </div>
-    );
-}
-
-interface RadioFieldEditProps {
-    field: RadioField;
-    index: number;
-}
-
-function RadioFieldEdit({ field, index }: RadioFieldEditProps) {
-    return (
-        <label className="input-group input-group-vertical input-group-sm">
-            <span>VALUES</span>
-            <input
-                type="text"
-                className="input input-bordered"
-                name={`fields[${index}].values`}
-                value={field.values.join(", ")}
-            />
-        </label>
-    );
+			{/* <Form
+					method="patch"
+					action="/admin/collection/update"
+					validator={withZod(Collection)}
+				>
+					<Hidden name="id" value={collection.id} />
+					<Label label="name">
+						<Text name="name" defaultValue={collection.name} />
+					</Label>
+					<Label label="fields" onAdd={onAddField}>
+						<div className="flex flex-col rounded bg-zinc-500 pt-3 text-sm">
+							<table className="text-left border-collapse">
+								<thead>
+									<tr>
+										<th className="font-normal px-3">Name</th>
+										<th className="font-normal px-3">Type</th>
+										<th className="font-normal px-3">Values</th>
+									</tr>
+								</thead>
+								<tbody className="bg-zinc-800">
+									{fields.map((field, i) => (
+										<tr key={field.name}>
+											<td className={cellClass}>
+												<Text
+													name={`field[${i}].name`}
+													defaultValue={field.name}
+													border={false}
+													ring={false}
+												/>
+											</td>
+											<td className={cellClass}>
+												<Select
+													value={field.type}
+													border={false}
+													onChange={(value) =>
+														onChangeFieldType(i, value as Field["type"])}
+												>
+													<Item value="checkbox" label="Checkbox" />
+													<Item value="text" label="Text" />
+													<Item value="radio" label="Radio" />
+													<Item value="date" label="Date" />
+													<Item value="time" label="Time" />
+													<Item value="datetime" label="Datetime" />
+												</Select>
+											</td>
+											<td className={cellClass}>
+												<Text
+													name={`field[${i}].values`}
+													border={false}
+													ring={false}
+													defaultValue={
+														field.values ? field.values.join(", ") : ""
+													}
+													disabled={field.type !== "radio"}
+												/>
+											</td>
+										</tr>
+									))}
+								</tbody>
+							</table>
+						</div>
+					</Label>
+					<Submit />
+				</Form> */}
+		</div>
+	);
 }

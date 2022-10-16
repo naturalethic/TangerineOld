@@ -1,33 +1,45 @@
 import { capitalize } from "inflection";
-import { useRef } from "react";
 import { MdAddCircle } from "react-icons/md";
+import { useField, useIsValid, ValidatedForm, Validator } from "remix-validated-form";
 
-import { useFetcher } from "@remix-run/react";
+import { FormMethod, useFetcher } from "@remix-run/react";
 
 interface FormProps {
 	children: React.ReactNode;
 	action: string;
+	validator: Validator<any>;
+	method: FormMethod;
 }
 
-export function Form({ children, action }: FormProps) {
+export function Form({ children, action, validator, method }: FormProps) {
 	const fetcher = useFetcher();
-	const form = useRef<HTMLFormElement>(null);
+	const valid = useIsValid("fooform");
+	// const form = useRef<HTMLFormElement>(null);
 
-	const onSubmit = function (event: React.FormEvent<HTMLFormElement>) {
-		event.preventDefault();
-		fetcher.submit(form.current);
-	};
-
+	// const onSubmit = function (event: React.FormEvent<HTMLFormElement>) {
+	// 	event.preventDefault();
+	// 	fetcher.submit(form.current);
+	// };
+	console.log("FORM");
+	console.log(valid);
 	return (
-		<fetcher.Form
+		<ValidatedForm
+			id="fooform"
 			className="flex flex-col space-y-4"
-			onSubmit={onSubmit}
+			// onSubmit={onSubmit}
 			action={action}
-			method="post"
-			ref={form}
+			method={method}
+			fetcher={fetcher}
+			// ref={form}
+			validator={validator}
+			onSubmit={async (data) => {
+				console.log(data);
+			}}
 		>
 			{children}
-		</fetcher.Form>
+			<input type="submit" value="Submit2" />
+			VALID [{valid}]
+		</ValidatedForm>
 	);
 }
 
@@ -64,6 +76,7 @@ export function Text({
 	ring = true,
 	disabled = false,
 }: TextProps) {
+	const { error, getInputProps } = useField(name);
 	let className =
 		"bg-zinc-800 text-zinc-400 rounded px-2 py-1 border-zinc-500 w-full ring-0 outline-0";
 	if (border) {
@@ -72,14 +85,25 @@ export function Text({
 	if (ring) {
 		className += " focus:ring-1 focus:ring-zinc-400";
 	}
+	console.log(error);
 	return (
-		<input
-			className={className}
-			type="text"
-			name={name}
-			defaultValue={defaultValue}
-			disabled={disabled}
-		/>
+		<div>
+			<input
+				{...getInputProps({
+					className: className,
+					disabled,
+					defaultValue,
+				})}
+				// className={className}
+				// type="text"
+				// name={name}
+				// defaultValue={
+				// 	defaultValue
+				// }
+				// disabled={disabled}
+			/>
+			{error && <span className="my-error-class">{error}</span>}
+		</div>
 	);
 }
 

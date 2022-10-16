@@ -1,4 +1,5 @@
 export { Select } from "./select";
 export { Item } from "./item";
-export { Form, Text, Hidden, Label, Submit } from "./form";
-export { RoundedTabs, FullTabs } from "./tabs";
+export { Form, Hidden, Label, Submit, Text } from "./form";
+export { FullTabs, RoundedTabs } from "./tabs";
+export { Modal } from "./modal";
