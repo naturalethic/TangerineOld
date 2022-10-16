@@ -56,24 +56,23 @@ export default function CollectionRoute() {
 		<div className="flex flex-row py-2 select-none h-full">
 			<div className="flex flex-col mr-2 ml-2">
 				<Link
-					className="text-xs border py-px px-1 rounded border-zinc-400 text-zinc-400 bg-zinc-600 cursor-pointer text-center"
-					to="?modal=create-collection"
+					className="text-xs border py-px px-1 rounded border-zinc-400 text-zinc-400 bg-zinc-600 cursor-pointer text-center w-36"
+					to="?action=create-collection"
 				>
 					NEW
 				</Link>
-				<div className="flex flex-col text-sm mt-4 space-y-1 flex-1 border-zinc-500">
+				<div className="flex flex-col text-sm mt-4 flex-1 border-zinc-500">
 					{collections.map((collection) => (
-						<div
-							className={`rounded px-2 select-none cursor-pointer ${
-								params.id === unpackId(collection) &&
-								"bg-zinc-400 text-zinc-700"
-							}`}
-							key={collection.name}
-						>
-							<Link to={unpackId(collection)}>
+						<Link to={unpackId(collection)} key={collection.id}>
+							<div
+								className={`rounded px-2 mt-1 select-none cursor-pointer ${
+									params.id === unpackId(collection) &&
+									"bg-orange-600 text-zinc-200"
+								}`}
+							>
 								{pluralize(capitalize(collection.name))}
-							</Link>
-						</div>
+							</div>
+						</Link>
 					))}
 				</div>
 			</div>

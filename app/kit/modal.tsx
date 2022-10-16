@@ -18,7 +18,7 @@ export function Modal({ children, name, title, focus }: Props) {
 	const ref = useRef<HTMLDivElement>(null);
 	if (focus) {
 		useEffect(() => {
-			if (params.get("modal") === name) {
+			if (params.get("action") === name) {
 				setTimeout(() => {
 					const el = ref.current?.querySelector(
 						`[name=${focus}]`,
@@ -29,35 +29,31 @@ export function Modal({ children, name, title, focus }: Props) {
 		}, [params]);
 	}
 	const onClose = () => {
-		params.delete("modal");
+		params.delete("action");
 		setParams(params);
 	};
 	return (
 		<ReactModal
-			isOpen={params.get("modal") === name}
+			isOpen={params.get("action") === name}
 			ariaHideApp={false}
 			className="absolute top-1/4 left-1/2 bg-transparent"
 			style={{ content: { transform: "translate(-50%, -50%)" } }}
 			overlayClassName="fixed inset-0 bg-black bg-opacity-50"
 			onRequestClose={onClose}
 		>
-			<div className="flex flex-col items-center justify-center h-full">
-				<div className="flex-1" />
-				<div className="bg-zinc-700 rounded relative border border-zinc-500">
-					<div
-						className="absolute text-zinc-300 p-2 cursor-pointer"
-						onClick={onClose}
-					>
-						<MdClose />
-					</div>
-					<div className="text-center text-zinc-300 py-1 border-b border-zinc-500">
-						{title}
-					</div>
-					<div className="px-8 pt-6 pb-8" ref={ref}>
-						{children}
-					</div>
+			<div className="bg-zinc-700 rounded relative border border-zinc-500">
+				<div
+					className="absolute text-zinc-300 p-2 cursor-pointer"
+					onClick={onClose}
+				>
+					<MdClose />
 				</div>
-				<div className="flex-[2]" />
+				<div className="text-center text-zinc-300 py-1 border-b border-zinc-500">
+					{title}
+				</div>
+				<div className="px-8 pt-6 pb-8" ref={ref}>
+					{children}
+				</div>
 			</div>
 		</ReactModal>
 	);

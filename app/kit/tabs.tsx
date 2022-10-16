@@ -64,7 +64,7 @@ export function FullTabs({
 		<motion.div
 			animate={{
 				backgroundColor: tab.props.value === value ? "#71717A" : "#27272A",
-				color: tab.props.value === value ? "#F4F4F5" : "D4D4D8",
+				color: tab.props.value === value ? "#F4F4F5" : "#D4D4D8",
 			}}
 			transition={{ duration: 0.1 }}
 			key={tab.props.value}

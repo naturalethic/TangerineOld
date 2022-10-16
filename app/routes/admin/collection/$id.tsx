@@ -1,14 +1,26 @@
+import type { LoaderFunction } from "@remix-run/node";
+import {
+  ActionFunction,
+  json,
+} from "@remix-run/node";
+import {
+  Link,
+  useLoaderData,
+} from "@remix-run/react";
 import { makeDomainFunction } from "domain-functions";
-import { Form, formAction } from "remix-forms";
+import {
+  Form,
+  formAction,
+} from "remix-forms";
 import { z } from "zod";
+
+import { Modal } from "~/kit";
 import { db } from "~/lib/database";
 import model from "~/lib/model";
-import { Collection, Field } from "~/lib/types";
-
-import { ActionFunction, json } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
-
-import type { LoaderFunction } from "@remix-run/node";
+import {
+  Collection,
+  Field,
+} from "~/lib/types";
 
 const Params = z.object({
 	id: z.string(),
@@ -26,12 +38,40 @@ export const loader: LoaderFunction = async ({ params }) => {
 	return json({ collection, fields });
 };
 
-const mutation = makeDomainFunction(Collection)(async (collection) => {
-	return await db.update(collection);
-});
-
-export const action: ActionFunction = async ({ request }) =>
-	formAction({ request, schema: Collection, mutation });
+export const action: ActionFunction = async ({ request }) => {
+	const url = new URL(request.url);
+	const successPath = url.pathname;
+	switch (url.searchParams.get("action")) {
+		case "update-collection":
+			return formAction({
+				request,
+				schema: Collection,
+				successPath,
+				mutation: makeDomainFunction(Collection)(async (collection) => {
+					return await db.update(collection);
+				}),
+			});
+		case "create-field":
+			return formAction({
+				request,
+				schema: Field,
+				successPath,
+				mutation: makeDomainFunction(Field)(async (field) => {
+					return await db.create("_field", field);
+				}),
+			});
+		case "update-field":
+			return formAction({
+				request,
+				schema: Field,
+				successPath,
+				mutation: makeDomainFunction(Field)(async (field) => {
+					return await db.update(field);
+				}),
+			});
+	}
+	throw json({ error: "Bad request" }, { status: 400 });
+};
 
 export default function CollectionRecordRoute() {
 	const { collection, fields } = useLoaderData<LoaderData>();
@@ -63,21 +103,23 @@ export default function CollectionRecordRoute() {
 
 	// const validator = withZod(Collection);
 
-	const onClickNewField = () => {
-		// const name = prompt("Collection name");
-		// if (name) {
-		// 	action.submit(
-		// 		{ name: singularize(name).toLowerCase() },
-		// 		{ method: "post", action: "/admin/collection/create" },
-		// 	);
-		// }
-	};
+	// const onClickNewField = () => {
+	// const name = prompt("Collection name");
+	// if (name) {
+	// 	action.submit(
+	// 		{ name: singularize(name).toLowerCase() },
+	// 		{ method: "post", action: "/admin/collection/create" },
+	// 	);
+	// }
+	// };
 
 	return (
-		<div className="flex flex-col bg-zinc-800 rounded h-full px-4 py-4">
+		<div
+			key={collection.id}
+			className="flex flex-col bg-zinc-800 rounded h-full px-4 py-4"
+		>
 			<Form
-				// action="/admin/collection/update"
-				// method="post"
+				action="?action=update-collection"
 				schema={Collection}
 				values={collection}
 				hiddenFields={["id"]}
@@ -85,11 +127,43 @@ export default function CollectionRecordRoute() {
 				pendingButtonLabel="Save"
 			/>
 			<div className="mt-4">Fields</div>
-			<div
+			<Link
 				className="text-xs border py-px px-1 rounded border-zinc-400 text-zinc-400 bg-zinc-600 cursor-pointer text-center"
-				// onClick={onClickNew}
+				to="?action=create-field"
 			>
 				NEW
+			</Link>
+			<div className="flex flex-row">
+				{fields.map((field) => {
+					const hiddenFields: Array<keyof Field> = ["id", "collection"];
+					if (!["radio"].includes(field.type)) {
+						hiddenFields.push("values");
+					}
+					return (
+						<div key={field.id} className="mt-2 mr-2 border p-2 rounded">
+							<Form
+								schema={Field}
+								values={field}
+								hiddenFields={hiddenFields}
+								action="?action=update-field"
+								buttonLabel="Save"
+								pendingButtonLabel="Save"
+							>
+								{({ Field, Errors, Button }) => (
+									<>
+										<Field name="id" />
+										<Field name="collection" />
+										<Field name="name" />
+										<Field name="type" />
+										<Field name="values" />
+										<Errors />
+										<Button />
+									</>
+								)}
+							</Form>
+						</div>
+					);
+				})}
 			</div>
 
 			{/* <Form
@@ -156,6 +230,21 @@ export default function CollectionRecordRoute() {
 					</Label>
 					<Submit />
 				</Form> */}
+			<Modal name="create-field" title="Create Field" focus="name">
+				<Form
+					schema={Field}
+					values={{
+						name: "",
+						type: "text",
+						values: [],
+						collection: collection.id,
+						id: "",
+					}}
+					buttonLabel="Create"
+					pendingButtonLabel="Create"
+					hiddenFields={["id", "collection", "values", "type"]}
+				/>
+			</Modal>
 		</div>
 	);
 }
