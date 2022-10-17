@@ -8,9 +8,7 @@ import { FullTabs, Item, RoundedTabs } from "~/kit";
 import { db } from "~/lib/database";
 import { getStorage, setStorage } from "~/lib/storage";
 
-type LoaderData = {
-    tables: string[];
-};
+type LoaderData = { tables: string[] };
 
 export const loader: LoaderFunction = async () => {
     const tables = await db.tables();
@@ -38,11 +36,7 @@ class ContentTab {
             let count = ContentTab.counter++;
             this.label = `Query ${count}`;
             this.value = `query-${count}`;
-            this.content = {
-                query: "",
-                result: null,
-                error: null,
-            };
+            this.content = { query: "", result: null, error: null };
         }
     }
 }

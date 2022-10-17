@@ -9,14 +9,9 @@ import { db } from "~/lib/database";
 import model from "~/lib/model";
 import { Collection, Field } from "~/lib/types";
 
-const Params = z.object({
-    id: z.string(),
-});
+const Params = z.object({ id: z.string() });
 
-type LoaderData = {
-    collection: Collection;
-    fields: Field[];
-};
+type LoaderData = { collection: Collection; fields: Field[] };
 
 export const loader: LoaderFunction = async ({ params }) => {
     const { id } = Params.parse(params);

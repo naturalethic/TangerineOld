@@ -1,18 +1,11 @@
 import type { ActionFunction } from "@remix-run/node";
+import { json } from "@remix-run/node";
 import { db } from "~/lib/database";
 
-import { json } from "@remix-run/node";
-
-export type ActionData = {
-    result: any | null;
-    error: any | null;
-};
+export type ActionData = { result: any | null; error: any | null };
 
 export const action: ActionFunction = async ({ request }) => {
-    const data: ActionData = {
-        result: null,
-        error: null,
-    };
+    const data: ActionData = { result: null, error: null };
     const form = await request.formData();
     const query = form.get("query") as string;
     try {

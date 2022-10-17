@@ -1,0 +1,19 @@
+{
+    "tabSize": 4,
+    "groupRules": [
+        {},
+        "^[~]",
+        "^[.]"
+    ],
+    "keepUnused": [
+        ".*"
+    ],
+    "wrappingStyle": {
+        "maxBindingNamesPerLine": 0,
+        "maxDefaultAndBindingNamesPerLine": 0,
+        "maxExportNamesPerLine": 0,
+        "maxNamesPerWrappedLine": 1,
+        "ignoreComments": false
+    },
+    "emptyLinesBetweenGroups": 0
+}
