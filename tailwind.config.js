@@ -9,8 +9,7 @@ module.exports = {
             },
         },
     },
-    // plugins: [require("daisyui")],
-    plugins: [],
+    plugins: [require("tailwind-scrollbar")],
     variants: {
         extend: {
             visibility: ["group-hover"],
