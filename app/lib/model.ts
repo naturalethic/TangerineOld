@@ -1,7 +1,14 @@
-import { db } from "./database";
-import { Collection, Field, Tenant } from "./types";
+import { db } from './database';
+import { Collection, Field, Query, Tenant } from './types';
 
 export default {
+    query: {
+        async all(): Promise<Query[]> {
+            return (await db.query(
+                "SELECT * FROM _query ORDER BY created DESC",
+            )) as Query[];
+        },
+    },
     collection: {
         async all(): Promise<Collection[]> {
             const collections = await db.select<Collection>("_collection");

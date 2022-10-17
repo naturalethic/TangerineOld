@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export type Identified = z.infer<typeof Identified>;
 export const Identified = z.object({ id: z.string() });
@@ -38,3 +38,11 @@ export const Field = Identified.extend({
 
 export type Tenant = z.infer<typeof Tenant>;
 export const Tenant = Identified.extend({ name: z.string() });
+
+export type Query = z.infer<typeof Query>;
+export const Query = Identified.extend({
+    created: z.string(),
+    statement: z.string(),
+    // result: z.any().optional(),
+    // error: z.any().optional(),
+});

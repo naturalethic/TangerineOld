@@ -1,4 +1,4 @@
-import { Link, Outlet, useLocation } from "@remix-run/react";
+import { Link, Outlet, useLocation } from '@remix-run/react';
 
 export default function AdminRoute() {
     return (
@@ -8,7 +8,8 @@ export default function AdminRoute() {
                     Tangerine
                 </div>
                 <div className="flex-1 flex flex-row ml-2">
-                    <MainLink to="/admin/database" label="Database Manager" />
+                    <MainLink to="/admin/table" label="Tables" />
+                    <MainLink to="/admin/query" label="Queries" />
                     <MainLink to="/admin/collection" label="Collections" />
                     <MainLink to="/admin/tenant" label="Tenants" />
                     <div className="flex-1" />

@@ -1,4 +1,4 @@
-import type { Identified } from "./types";
+import type { Identified } from './types';
 
 export class Database {
     namespace: string;
@@ -32,8 +32,15 @@ export class Database {
         throw new Error(await result.text());
     }
 
-    async query(statement: string): Promise<Record<string, any>> {
-        return await this.call("post", "/sql", statement);
+    async query(
+        statement: string,
+        first = false,
+    ): Promise<Record<string, any>> {
+        const result = await this.call("post", "/sql", statement);
+        if (first) {
+            return result[0];
+        }
+        return result;
     }
 
     async tables(): Promise<string[]> {
