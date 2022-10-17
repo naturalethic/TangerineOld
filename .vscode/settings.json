@@ -22,4 +22,12 @@
     "tsImportSorter.configuration.keepUnused": [
         ".*"
     ],
+    "tsImportSorter.configuration.wrappingStyle": {
+        "maxBindingNamesPerLine": 0,
+        "maxDefaultAndBindingNamesPerLine": 0,
+        "maxExportNamesPerLine": 0,
+        "maxNamesPerWrappedLine": 1,
+        "ignoreComments": false
+    },
+    "tsImportSorter.configuration.emptyLinesBetweenGroups": 0,
 }

@@ -1,0 +1,13 @@
+{
+    "formatter": {
+        "indentStyle": "space",
+        "indentSize": 4
+    },
+    "linter": {
+        "rules": {
+            "correctness": {
+                "noDelete": "off"
+            }
+        }
+    }
+}
