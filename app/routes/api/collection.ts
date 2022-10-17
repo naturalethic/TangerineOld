@@ -18,9 +18,7 @@ import { createAction } from "~/lib/api";
 // 	return json({ patch: true });
 // }
 
-interface Input {
-	name: string;
-}
+interface Input { name: string }
 
 export const action = createAction<Input>({
 	async post({ request, input }) {

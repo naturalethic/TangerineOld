@@ -1,8 +1,7 @@
+import { LoaderFunction, Response } from "@remix-run/node";
 import Zip from "jszip";
 import { exec } from "shelljs";
 import { db } from "~/lib/database";
-
-import { LoaderFunction, Response } from "@remix-run/node";
 
 export const loader: LoaderFunction = async () => {
     const zip = new Zip();
