@@ -1,6 +1,0 @@
-importOrder:
-    - ^~/(.*)$
-    - ^[./]
-importOrderSeparation: true
-importOrderSortSpecifiers: true
-trailingComma: all
