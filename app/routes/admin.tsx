@@ -1,4 +1,4 @@
-import { Link, Outlet, useLocation } from '@remix-run/react';
+import { Link, Outlet, useLocation } from "@remix-run/react";
 
 export default function AdminRoute() {
     return (

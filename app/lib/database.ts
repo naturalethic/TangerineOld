@@ -1,4 +1,4 @@
-import type { Identified } from './types';
+import type { Identified } from "./types";
 
 export class Database {
     namespace: string;

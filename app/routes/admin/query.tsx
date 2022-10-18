@@ -1,13 +1,13 @@
-import type { ActionFunction, LoaderFunction } from '@remix-run/node';
-import { json } from '@remix-run/node';
-import { useFetcher, useLoaderData, useSearchParams } from '@remix-run/react';
-import { useEffect, useRef, useState } from 'react';
-import { JSONTree } from 'react-json-tree';
-import { z } from 'zod';
-import { db } from '~/lib/database';
-import { packId, unpackId } from '~/lib/helper';
-import model from '~/lib/model';
-import { Query } from '~/lib/types';
+import type { ActionFunction, LoaderFunction } from "@remix-run/node";
+import { json } from "@remix-run/node";
+import { useFetcher, useLoaderData, useSearchParams } from "@remix-run/react";
+import { useEffect, useRef, useState } from "react";
+import { JSONTree } from "react-json-tree";
+import { z } from "zod";
+import { db } from "~/lib/database";
+import { packId, unpackId } from "~/lib/helper";
+import model from "~/lib/model";
+import { Query } from "~/lib/types";
 
 type LoaderData = { queries: Query[] };
 
@@ -100,7 +100,7 @@ export default function DatabaseRoute() {
                         </button>
                     </div>
                 </div>
-                <div className="rounded py-1 px-2 bg-zinc-900 overflow-auto h-1/2 scrollbar-thin scrollbar-thumb-orange-900">
+                <div className="rounded py-1 px-2 bg-zinc-900 h-1/2 overflow-auto scrollbar-thin scrollbar-thumb-orange-900">
                     {fetcher.data && (
                         <JSONTree
                             data={fetcher.data}

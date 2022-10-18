@@ -15,5 +15,6 @@
         "maxNamesPerWrappedLine": 1,
         "ignoreComments": false
     },
-    "emptyLinesBetweenGroups": 0
+    "emptyLinesBetweenGroups": 0,
+    "quoteMark": "double"
 }
