@@ -1,16 +1,5 @@
-import type { ActionFunction, LoaderFunction } from "@remix-run/node";
-import { json, Response } from "@remix-run/node";
-import {
-    Link,
-    useFetcher,
-    useLoaderData,
-    useSearchParams,
-} from "@remix-run/react";
-import Zip from "jszip";
-import { useRef, useState } from "react";
-import { useHotkeys } from "react-hotkeys-hook";
-import { exec } from "shelljs";
-import { db } from "~/lib/database";
+import { Link, useFetcher } from "@remix-run/react";
+import { useRef } from "react";
 
 export default function () {
     const fetcher = useFetcher();
@@ -42,7 +31,6 @@ export default function () {
             </div>
             <div className="bg-zinc-600 w-px h-full" />
             <div className="flex-1 mx-2 flex flex-col space-y-3">
-                <input type="file" className="hidden" />
                 <fetcher.Form
                     method="post"
                     className="hidden"
