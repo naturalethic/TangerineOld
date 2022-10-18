@@ -8,18 +8,20 @@ import {
     useSearchParams,
 } from "@remix-run/react";
 import { makeDomainFunction } from "domain-functions";
+import { capitalize, pluralize } from "inflection";
 import { Form, formAction } from "remix-forms";
 import { Modal } from "~/kit";
 import { db } from "~/lib/database";
 import { unpackId } from "~/lib/helper";
 import model from "~/lib/model";
-import { Tenant } from "~/lib/types";
+import { Collection, Tenant } from "~/lib/types";
 
-type LoaderData = { tenants: Tenant[] };
+type LoaderData = { tenants: Tenant[]; collections: Collection[] };
 
 export const loader: LoaderFunction = async ({ request }) => {
     const tenants = await model.tenant.all();
-    return json({ tenants });
+    const collections = await model.collection.all();
+    return json({ tenants, collections });
 };
 
 export const action: ActionFunction = async ({ request }) =>
@@ -36,7 +38,7 @@ export const action: ActionFunction = async ({ request }) =>
 
 export default function () {
     // const fetcher = useFetcher();
-    const { tenants } = useLoaderData<LoaderData>();
+    const { tenants, collections } = useLoaderData<LoaderData>();
     const params = useParams();
 
     return (
@@ -58,6 +60,23 @@ export default function () {
                                 }`}
                             >
                                 {tenant.name}
+                            </div>
+                        </Link>
+                    ))}
+                </div>
+            </div>
+            <div className="bg-zinc-600 w-px h-full" />
+            <div className="flex flex-col mr-2 ml-2">
+                <div className="flex flex-col text-sm flex-1">
+                    {collections.map((collection) => (
+                        <Link to={unpackId(collection)} key={collection.id}>
+                            <div
+                                className={`rounded px-2 mt-1 select-none cursor-pointer ${
+                                    params.id === unpackId(collection) &&
+                                    "bg-orange-600 text-zinc-200"
+                                }`}
+                            >
+                                {pluralize(capitalize(collection.name))}
                             </div>
                         </Link>
                     ))}

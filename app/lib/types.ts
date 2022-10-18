@@ -10,7 +10,15 @@ export type Field = z.infer<typeof Field>;
 export const Field = Identified.extend({
     collection: z.string(),
     name: z.string(),
-    type: z.enum(["checkbox", "text", "radio", "date", "time", "datetime"]),
+    type: z.enum([
+        "checkbox",
+        "text",
+        "radio",
+        "date",
+        "time",
+        "datetime",
+        "reference",
+    ]),
     values: z.preprocess((value) => {
         if (typeof value === "string") {
             return value
@@ -22,20 +30,6 @@ export const Field = Identified.extend({
     }, z.string().array().optional()),
 });
 
-// .transform((field, ctx) => {
-// 	if (field.type === "radio" && !field.values) {
-// 		field.values = [];
-// 	}
-// 	if (field.type !== "radio" && field.values) {
-// 		ctx.addIssue({
-// 			code: z.ZodIssueCode.custom,
-// 			message: "Values are only allowed for radio fields",
-// 		});
-// 		return z.NEVER;
-// 	}
-// 	return field;
-// });
-
 export type Tenant = z.infer<typeof Tenant>;
 export const Tenant = Identified.extend({ name: z.string() });
 
@@ -43,6 +37,4 @@ export type Query = z.infer<typeof Query>;
 export const Query = Identified.extend({
     created: z.string(),
     statement: z.string(),
-    // result: z.any().optional(),
-    // error: z.any().optional(),
 });

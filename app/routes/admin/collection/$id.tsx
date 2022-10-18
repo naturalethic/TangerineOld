@@ -110,7 +110,7 @@ export default function CollectionRecordRoute() {
             />
             <div className="mt-4">Fields</div>
             <Link
-                className="text-xs border py-px px-1 rounded border-zinc-400 text-zinc-400 bg-zinc-600 cursor-pointer text-center"
+                className="text-xs border py-px px-1 rounded border-zinc-400 text-zinc-400 bg-zinc-600 cursor-pointer text-center w-36 mt-2"
                 to="?action=create-field"
             >
                 NEW
@@ -230,7 +230,7 @@ export default function CollectionRecordRoute() {
                     }}
                     buttonLabel="Create"
                     pendingButtonLabel="Create"
-                    hiddenFields={["id", "collection", "values", "type"]}
+                    hiddenFields={["id", "collection", "values"]}
                 />
             </Modal>
         </div>
