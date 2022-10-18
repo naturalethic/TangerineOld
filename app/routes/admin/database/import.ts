@@ -25,5 +25,5 @@ export const action: ActionFunction = async ({ request }) => {
         ps.stdin!.write(await file.async("string"));
         ps.stdin!.end();
     }
-    return redirect("/admin/query");
+    return redirect("/admin/database");
 };
