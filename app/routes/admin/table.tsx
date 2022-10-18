@@ -26,7 +26,6 @@ export const loader: LoaderFunction = async ({ request }) => {
 
 export const action: ActionFunction = async ({ request }) => {
     const url = new URL(request.url);
-    console.log(url);
     switch (url.searchParams.get("action")) {
         case "delete-rows": {
             const form = await request.formData();

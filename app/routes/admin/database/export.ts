@@ -4,6 +4,7 @@ import { exec } from "shelljs";
 import { db } from "~/lib/database";
 
 export const loader: LoaderFunction = async () => {
+    console.log("EXPORT");
     const zip = new Zip();
     for (const database of [db.database]) {
         zip.file(

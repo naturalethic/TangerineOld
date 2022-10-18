@@ -43,7 +43,7 @@ export default function CollectionRoute() {
                 >
                     NEW
                 </Link>
-                <div className="flex flex-col text-sm mt-4 flex-1 border-zinc-500">
+                <div className="flex flex-col text-sm mt-4 flex-1">
                     {collections.map((collection) => (
                         <Link to={unpackId(collection)} key={collection.id}>
                             <div
