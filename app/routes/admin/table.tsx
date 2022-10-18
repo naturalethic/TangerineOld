@@ -88,27 +88,33 @@ export default function DatabaseRoute() {
 
     const onRowClick = (id: string) => {
         if (selectedRows.includes(id)) {
-            setSelectedRows((from) => from.filter((i) => i !== id));
+            // setSelectedRows((from) => from.filter((i) => i !== id));
+            setSelectedRows(selectedRows.filter((i) => i !== id));
         } else {
-            setSelectedRows((from) => [...from, id]);
+            // setSelectedRows((from) => [...from, id]);
+            setSelectedRows([...selectedRows, id]);
         }
     };
 
-    useHotkeys("del", () => {
-        console.log("DEL", selectedRows);
-        if (selectedRows.length === 0) {
-            return;
-        }
-        const ids = selectedRows.join(",");
-        setSelectedRows([]);
-        // fetcher.submit(
-        //     {
-        //         table: search.get("name") as string,
-        //         ids,
-        //     },
-        //     { method: "post", action: "/admin/table?action=delete-rows" },
-        // );
-    });
+    useHotkeys(
+        "del",
+        () => {
+            console.log("DEL", selectedRows);
+            if (selectedRows.length === 0) {
+                return;
+            }
+            const ids = selectedRows.join(",");
+            setSelectedRows([]);
+            fetcher.submit(
+                {
+                    table: search.get("name") as string,
+                    ids,
+                },
+                { method: "post", action: "/admin/table?action=delete-rows" },
+            );
+        },
+        [selectedRows],
+    );
 
     useHotkeys("esc", () => {
         setSelectedRows([]);
