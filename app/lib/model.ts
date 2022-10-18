@@ -1,5 +1,5 @@
-import { db } from './database';
-import { Collection, Field, Query, Tenant } from './types';
+import { db } from "./database";
+import { Collection, Field, Query, Tenant } from "./types";
 
 export default {
     query: {
