@@ -1,6 +1,6 @@
 import { Link, Outlet, useLocation } from "@remix-run/react";
 
-export default function AdminRoute() {
+export default function () {
     return (
         <div className="dark:bg-zinc-700 absolute inset-0 font-iosevka text-zinc-300">
             <div className="flex flex-row h-16 items-baseline mt-3">

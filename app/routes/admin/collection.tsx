@@ -29,7 +29,7 @@ export const action: ActionFunction = async ({ request }) =>
         },
     });
 
-export default function CollectionRoute() {
+export default function () {
     const { collections } = useLoaderData<LoaderData>();
 
     const params = useParams();

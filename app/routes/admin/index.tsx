@@ -4,6 +4,6 @@ export const loader: LoaderFunction = async () => {
     return json({});
 };
 
-export default function IndexRoute() {
+export default function () {
     return <h2>Dashboard</h2>;
 }
