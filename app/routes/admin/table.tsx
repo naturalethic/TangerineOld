@@ -73,7 +73,7 @@ const sortKeys = (keys: string[]) => {
     return sortedKeys;
 };
 
-export default function DatabaseRoute() {
+export default function () {
     const { tables, rows } = useLoaderData<LoaderData>();
     const [selectedRows, setSelectedRows] = useState<string[]>([]);
     const [search] = useSearchParams();

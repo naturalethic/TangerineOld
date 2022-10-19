@@ -13,6 +13,7 @@ export const Field = Identified.extend({
     type: z.enum([
         "checkbox",
         "text",
+        "textarea",
         "radio",
         "date",
         "time",

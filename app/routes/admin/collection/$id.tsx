@@ -55,7 +55,7 @@ export const action: ActionFunction = async ({ request }) => {
     throw json({ error: "Bad request" }, { status: 400 });
 };
 
-export default function CollectionRecordRoute() {
+export default function () {
     const { collection, fields } = useLoaderData<LoaderData>();
 
     // const [fields, setFields] = useState<Field[]>(collection.fields);

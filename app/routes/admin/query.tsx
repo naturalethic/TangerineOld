@@ -46,7 +46,7 @@ export const action: ActionFunction = async ({ request }) => {
     throw json({ error: "Bad request" }, { status: 400 });
 };
 
-export default function DatabaseRoute() {
+export default function () {
     const [search] = useSearchParams();
     const { queries } = useLoaderData<LoaderData>();
     const [statement, setStatement] = useState<string>(

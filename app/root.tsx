@@ -1,11 +1,11 @@
 import type { LinksFunction, MetaFunction } from "@remix-run/node";
 import {
-  Links,
-  LiveReload,
-  Meta,
-  Outlet,
-  Scripts,
-  ScrollRestoration,
+    Links,
+    LiveReload,
+    Meta,
+    Outlet,
+    Scripts,
+    ScrollRestoration,
 } from "@remix-run/react";
 
 export const links: LinksFunction = () => {
@@ -34,7 +34,7 @@ export function ErrorBoundary({ error }: { error: Error }) {
     );
 }
 
-export default function App() {
+export default function () {
     return (
         <html lang="en">
             <head>

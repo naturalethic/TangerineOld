@@ -1,33 +1,35 @@
-// import type { ActionFunction, LoaderFunction } from "@remix-run/node";
-// import { setProperty } from "dot-prop";
-// import { capitalize, pluralize } from "inflection";
-// import { useEffect, useRef, useState } from "react";
-// import { MdDelete } from "react-icons/md";
-// import { db } from "~/lib/database";
-// import { inv, rid } from "~/lib/helper";
-// import { Collection, Tenant } from "~/lib/model";
+import type { ActionFunction, LoaderFunction } from "@remix-run/node";
+import { json } from "@remix-run/node";
+import {
+    Link,
+    Outlet,
+    useFetcher,
+    useLoaderData,
+    useParams,
+} from "@remix-run/react";
+import { setProperty } from "dot-prop";
+import { capitalize, pluralize } from "inflection";
+import { useEffect, useRef, useState } from "react";
+import { MdDelete } from "react-icons/md";
+import { z } from "zod";
+import { db } from "~/lib/database";
+import { unpackId } from "~/lib/helper";
+import model from "~/lib/model";
+import { Collection, Field, Tenant } from "~/lib/types";
 
-// import { json } from "@remix-run/node";
-// import { useFetcher, useLoaderData } from "@remix-run/react";
+type LoaderData = {
+    tenant: Tenant;
+    collections: Collection[];
+};
 
-// import type { Field, RadioField } from "~/lib/types";
+const Params = z.object({ tenant: z.string() });
 
-// type LoaderData = {
-//     tenant: Tenant;
-//     collections: Collection[];
-//     data: Record<string, Record<string, any>[]>;
-// };
-
-// export const loader: LoaderFunction = async ({ params }) => {
-//     const id = inv(params.id, "Tenant ID is required");
-//     const tenant = await Tenant.get(id);
-//     const collections = await Collection.all();
-//     const data: Record<string, Record<string, any>[]> = {};
-//     for (const collection of collections) {
-//         data[collection.name] = await db.select(collection.name);
-//     }
-//     return json<LoaderData>({ tenant, collections, data });
-// };
+export const loader: LoaderFunction = async ({ params }) => {
+    const p = Params.parse(params);
+    const tenant = await model.tenant.get(p.tenant);
+    const collections = await model.collection.all();
+    return json<LoaderData>({ tenant, collections });
+};
 
 // export const action: ActionFunction = async ({ request }) => {
 //     const form = await request.formData();
@@ -39,28 +41,51 @@
 //     return null;
 // };
 
-// export default function TenantCollectionRoute() {
-//     const { tenant, collections, data } = useLoaderData() as LoaderData;
-//     const [record, setRecord] = useState<TenantCollectionRecord | null>(
-//         new TenantCollectionRecord(tenant, collections[0]),
-//     );
-
-//     return (
-//         <div className="flex flex-row">
-//             <div className="flex-1">
-//                 <TenantProperties tenant={tenant} />
-//                 <div className="divider"></div>
-//                 <TenantCollections
-//                     tenant={tenant}
-//                     collections={collections}
-//                     data={data}
-//                     onRecord={(record) => setRecord(record)}
-//                 />
-//             </div>
-//             <TenantCollectionRecordEdit record={record} />
-//         </div>
-//     );
-// }
+export default function () {
+    const { tenant, collections } = useLoaderData() as LoaderData;
+    const p = useParams();
+    //     const [record, setRecord] = useState<TenantCollectionRecord | null>(
+    //         new TenantCollectionRecord(tenant, collections[0]),
+    //     );
+    return (
+        <div className="flex flex-row h-full">
+            <div className="flex flex-col mr-2">
+                <div className="flex flex-col text-sm flex-1">
+                    {collections.map((collection) => (
+                        <Link
+                            to={`collection/${unpackId(collection)}`}
+                            key={collection.id}
+                        >
+                            <div
+                                className={`rounded px-2 mb-1 select-none cursor-pointer ${
+                                    p.collection === unpackId(collection) &&
+                                    "bg-orange-600 text-zinc-200"
+                                }`}
+                            >
+                                {pluralize(capitalize(collection.name))}
+                            </div>
+                        </Link>
+                    ))}
+                </div>
+            </div>
+            <div className="bg-zinc-600 w-px" />
+            <div className="ml-2">
+                <Outlet />
+            </div>
+            {/* <div className="flex-1">
+                    <TenantProperties tenant={tenant} />
+                    <div className="divider"></div>
+                    <TenantCollections
+                        tenant={tenant}
+                        collections={collections}
+                        data={data}
+                        onRecord={(record) => setRecord(record)}
+                    />
+                </div>
+                <TenantCollectionRecordEdit record={record} /> */}
+        </div>
+    );
+}
 
 // interface TenantPropertiesProps {
 //     tenant: Tenant;
