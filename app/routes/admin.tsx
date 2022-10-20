@@ -1,4 +1,9 @@
+import { json, LoaderFunction } from "@remix-run/node";
 import { Link, Outlet, useLocation } from "@remix-run/react";
+
+// export const loader: LoaderFunction = async () => {
+//     throw json({ error: "Unauthorized" }, { status: 401 });
+// };
 
 export default function () {
     return (
