@@ -1,4 +1,10 @@
-import type { LinksFunction, MetaFunction } from "@remix-run/node";
+import {
+    json,
+    LinksFunction,
+    LoaderFunction,
+    MetaFunction,
+    redirect,
+} from "@remix-run/node";
 import {
     Links,
     LiveReload,
@@ -7,6 +13,7 @@ import {
     Scripts,
     ScrollRestoration,
 } from "@remix-run/react";
+import { getSession } from "./lib/session.server";
 
 export const links: LinksFunction = () => {
     return [{ rel: "stylesheet", href: "/style" }];
@@ -34,12 +41,26 @@ export function ErrorBoundary({ error }: { error: Error }) {
     );
 }
 
+export const loader: LoaderFunction = async ({ request }) => {
+    const session = await getSession(request);
+    // console.log(session);
+    // const identity = session.get("identity");
+    // console.log(session);
+    // const url = new URL(request.url);
+    // if (url.pathname === "/") {
+    // if (!session.get("identity")) {
+    //     console.log("redirecting");
+    //     // redirect("/login", { headers: await session.commit() });
+    // }
+    return null;
+    // throw json({ error: "Unauthorized" }, { status: 401 });
+};
+
 export default function () {
     return (
         <html lang="en">
             <head>
                 <Meta />
-
                 <Links />
             </head>
             <body className="p-0 m-0">
@@ -47,7 +68,6 @@ export default function () {
                 <ScrollRestoration />
                 <Scripts />
                 <LiveReload />
-                <div id="modals" />
             </body>
         </html>
     );

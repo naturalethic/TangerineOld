@@ -1,4 +1,5 @@
-import { Link } from "@remix-run/react";
+import { json, LoaderFunction } from "@remix-run/node";
+import { Link, Outlet, useLoaderData, useLocation } from "@remix-run/react";
 
 export default function () {
     return (

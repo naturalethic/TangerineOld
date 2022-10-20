@@ -39,3 +39,9 @@ export const Query = Identified.extend({
     created: z.string(),
     statement: z.string(),
 });
+
+export type Session = z.infer<typeof Session>;
+export const Session = Identified.extend({
+    data: z.record(z.any()),
+    expires: z.date().optional(),
+});
