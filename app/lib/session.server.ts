@@ -1,30 +1,34 @@
 import { createSessionStorage, Session as RemixSession } from "@remix-run/node";
-import { db } from "./database";
+import { db } from "./database.server";
+import { unpackId } from "./helper";
 import { Session as SessionBase } from "./types";
 
 function createDatabaseSessionStorage() {
     return createSessionStorage({
         cookie: { name: "session", secrets: [process.env.COOKIE_SECRET!] },
         async createData(data, expires) {
+            console.log("createData", data, expires);
             const session = await db.create<SessionBase>("_session", {
                 data,
                 expires,
             });
-            return session.id;
+            return unpackId(session.id);
         },
         async readData(id) {
-            return (await db.select<SessionBase>("_session", id)).data;
+            console.log("readData", id);
+            return (await db.select<SessionBase>("_session", id))?.data;
         },
         async updateData(id, data, expires) {
+            console.log("updateData", id, data, expires);
             const session = await db.select<SessionBase>("_session", id);
-            if (!session) {
-                return;
+            if (session) {
+                session.data = data;
+                session.expires = expires;
+                await db.update(session);
             }
-            session.data = data;
-            session.expires = expires;
-            await db.update(session);
         },
         async deleteData(id) {
+            console.log("deleteData", id);
             await db.delete("_session", id);
         },
     });
@@ -32,50 +36,48 @@ function createDatabaseSessionStorage() {
 
 const storage = createDatabaseSessionStorage();
 
-// class Session {
-//     session: RemixSession;
+class Session {
+    session: RemixSession;
 
-//     constructor(session: RemixSession) {
-//         this.session = session;
-//     }
+    constructor(session: RemixSession) {
+        this.session = session;
+    }
 
-//     static async get(request: Request): Promise<Session> {
-//         // return new Session(
-//         //     await storage.getSession(request.headers.get("Cookie")),
-//         // );
-//     }
+    static async get(request: Request): Promise<Session> {
+        return new Session(
+            await storage.getSession(request.headers.get("cookie")),
+        );
+    }
 
-//     has(key: string): boolean {
-//         return this.session.has(key);
-//     }
+    has(key: string): boolean {
+        return this.session.has(key);
+    }
 
-//     get(key: string): any {
-//         return this.session.get(key);
-//     }
+    get(key: string): any {
+        return this.session.get(key);
+    }
 
-//     set(key: string, value: any): void {
-//         this.session.set(key, value);
-//     }
+    set(key: string, value: any): void {
+        this.session.set(key, value);
+    }
 
-//     unset(key: string): void {
-//         this.session.unset(key);
-//     }
+    unset(key: string): void {
+        this.session.unset(key);
+    }
 
-//     flash(key: string, value: any): void {
-//         this.session.flash(key, value);
-//     }
+    flash(key: string, value: any): void {
+        this.session.flash(key, value);
+    }
 
-//     async commit(): Promise<Record<string, string>> {
-//         return { "Set-Cookie": await storage.commitSession(this.session) };
-//     }
+    async commit(): Promise<Record<string, string>> {
+        return { "Set-Cookie": await storage.commitSession(this.session) };
+    }
 
-//     async destroy(): Promise<void> {
-//         await storage.destroySession(this.session);
-//     }
-// }
+    async destroy(): Promise<void> {
+        await storage.destroySession(this.session);
+    }
+}
 
-// export const getSession = async (request: Request): Promise<Session> => {
-//     // return await Session.get(request);
-// };
-
-export const getSession = () => {};
+export const getSession = async (request: Request): Promise<Session> => {
+    return await Session.get(request);
+};

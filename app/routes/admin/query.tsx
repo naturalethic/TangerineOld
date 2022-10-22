@@ -4,7 +4,7 @@ import { useFetcher, useLoaderData, useSearchParams } from "@remix-run/react";
 import { useEffect, useRef, useState } from "react";
 import { JSONTree } from "react-json-tree";
 import { z } from "zod";
-import { db } from "~/lib/database";
+import { db } from "~/lib/database.server";
 import { packId, unpackId } from "~/lib/helper";
 import model from "~/lib/model";
 import { Query } from "~/lib/types";

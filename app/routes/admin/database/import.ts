@@ -6,7 +6,7 @@ import {
 } from "@remix-run/node";
 import Zip from "jszip";
 import { exec } from "shelljs";
-import { db } from "~/lib/database";
+import { db } from "~/lib/database.server";
 
 export const action: ActionFunction = async ({ request }) => {
     const uploadHandler = await unstable_createMemoryUploadHandler();

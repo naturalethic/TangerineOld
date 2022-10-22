@@ -5,7 +5,7 @@ import { makeDomainFunction } from "domain-functions";
 import { capitalize, pluralize } from "inflection";
 import { Form, formAction } from "remix-forms";
 import { Modal } from "~/kit";
-import { db } from "~/lib/database";
+import { db } from "~/lib/database.server";
 import { unpackId } from "~/lib/helper";
 import model from "~/lib/model";
 import { Collection } from "~/lib/types";

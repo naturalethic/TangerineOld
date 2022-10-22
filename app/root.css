@@ -37,8 +37,12 @@ form > button {
     @apply mt-4 px-6 py-1 border rounded bg-zinc-300 border-zinc-700 text-zinc-700;
 }
 
-form  select {
+form select {
     @apply border rounded border-zinc-400 bg-zinc-800 text-zinc-400 px-2 py-1;
+}
+
+form [role=alert] {
+    @apply text-red-500;
 }
 
 .button {

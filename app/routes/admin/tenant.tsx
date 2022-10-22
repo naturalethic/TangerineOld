@@ -4,7 +4,7 @@ import { Link, Outlet, useLoaderData, useParams } from "@remix-run/react";
 import { makeDomainFunction } from "domain-functions";
 import { Form, formAction } from "remix-forms";
 import { Modal } from "~/kit";
-import { db } from "~/lib/database";
+import { db } from "~/lib/database.server";
 import { unpackId } from "~/lib/helper";
 import model from "~/lib/model";
 import { Tenant } from "~/lib/types";

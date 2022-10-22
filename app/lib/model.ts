@@ -1,4 +1,4 @@
-import { db } from "./database";
+import { db } from "./database.server";
 import { Collection, Field, Query, Tenant } from "./types";
 
 export default {

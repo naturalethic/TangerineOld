@@ -8,7 +8,7 @@ import {
 } from "@remix-run/react";
 import { useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
-import { db } from "~/lib/database";
+import { db } from "~/lib/database.server";
 
 type LoaderData = { tables: string[]; rows: any[] };
 
