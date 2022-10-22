@@ -14,7 +14,7 @@ export class Database {
         path: string,
         body: object | string | null = null,
     ) {
-        const result = await fetch(`http://localhost:8000${path}`, {
+        const result = await fetch(`${process.env.DATABASE_ENDPOINT!}${path}`, {
             method,
             headers: {
                 Authorization: `Basic ${btoa("root:root")}`,

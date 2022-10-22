@@ -6,7 +6,7 @@ import { capitalize, pluralize } from "inflection";
 import { useEffect, useRef, useState } from "react";
 import { MdDelete } from "react-icons/md";
 import { z } from "zod";
-import { db } from "~/lib/database";
+import { db } from "~/lib/database.server";
 import model from "~/lib/model";
 import { Collection, Field, Tenant } from "~/lib/types";
 

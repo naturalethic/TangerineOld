@@ -42,18 +42,14 @@ export function ErrorBoundary({ error }: { error: Error }) {
 }
 
 export const loader: LoaderFunction = async ({ request }) => {
-    const session = await getSession(request);
-    // console.log(session);
-    // const identity = session.get("identity");
-    // console.log(session);
-    // const url = new URL(request.url);
-    // if (url.pathname === "/") {
-    // if (!session.get("identity")) {
-    //     console.log("redirecting");
-    //     // redirect("/login", { headers: await session.commit() });
-    // }
+    const url = new URL(request.url);
+    if (!["/login", "/signup"].includes(url.pathname)) {
+        const session = await getSession(request);
+        if (!session.get("identity")) {
+            return redirect("/login", { headers: await session.commit() });
+        }
+    }
     return null;
-    // throw json({ error: "Unauthorized" }, { status: 401 });
 };
 
 export default function () {
