@@ -8,6 +8,7 @@ import {
 } from "@remix-run/react";
 import { useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
+import { EntityList } from "~/components/admin";
 import { db } from "~/lib/database.server";
 
 type LoaderData = { tables: string[]; rows: any[] };
@@ -123,7 +124,11 @@ export default function () {
 
     return (
         <div className="flex flex-row py-2 select-none h-full">
-            <div className="flex flex-col mr-2 ml-2">
+            <EntityList
+                entities={tables}
+                selectedPredicate={(table) => table === search.get("name")}
+            />
+            {/* <div className="flex flex-col mr-2 ml-2">
                 <div className="flex flex-col text-sm flex-1 border-zinc-500 w-36">
                     {tables.map((table) => (
                         <Link to={`/admin/table?name=${table}`} key={table}>
@@ -141,7 +146,7 @@ export default function () {
                         </Link>
                     ))}
                 </div>
-            </div>
+            </div> */}
             <div className="bg-zinc-600 w-px h-full" />
             <div className="flex-1 mx-2 flex flex-col space-y-3">
                 <div className="flex flex-col h-full relative">

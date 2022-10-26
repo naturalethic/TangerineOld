@@ -45,3 +45,8 @@ export const Session = Identified.extend({
     data: z.record(z.any()),
     expires: z.date().optional(),
 });
+
+export type Identity = z.infer<typeof Identity>;
+export const Identity = Identified.extend({
+    username: z.string(),
+});

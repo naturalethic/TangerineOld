@@ -18,6 +18,7 @@ export default function () {
                     <MainLink to="/admin/table" label="Tables" />
                     <MainLink to="/admin/collection" label="Collections" />
                     <MainLink to="/admin/tenant" label="Tenants" />
+                    <MainLink to="/admin/identity" label="Identities" />
                     <div className="flex-1" />
                 </div>
                 <div className="w-64" />
