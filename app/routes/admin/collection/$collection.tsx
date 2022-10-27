@@ -9,12 +9,12 @@ import { db } from "~/lib/database.server";
 import model from "~/lib/model";
 import { Collection, Field } from "~/lib/types";
 
-const Params = z.object({ id: z.string() });
+const Params = z.object({ collection: z.string() });
 
 type LoaderData = { collection: Collection; fields: Field[] };
 
 export const loader: LoaderFunction = async ({ params }) => {
-    const { id } = Params.parse(params);
+    const { collection: id } = Params.parse(params);
     const collection = await model.collection.get(id);
     const fields = await model.field.all(id);
     return json({ collection, fields });

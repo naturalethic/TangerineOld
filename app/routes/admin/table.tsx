@@ -126,27 +126,9 @@ export default function () {
         <div className="flex flex-row py-2 select-none h-full">
             <EntityList
                 entities={tables}
-                selectedPredicate={(table) => table === search.get("name")}
+                linkPrefix="/admin/table?name="
+                activePredicate={(table) => table === search.get("name")}
             />
-            {/* <div className="flex flex-col mr-2 ml-2">
-                <div className="flex flex-col text-sm flex-1 border-zinc-500 w-36">
-                    {tables.map((table) => (
-                        <Link to={`/admin/table?name=${table}`} key={table}>
-                            <div
-                                className={`rounded px-2 mt-1 select-none cursor-pointer ${
-                                    search.get("name") === table &&
-                                    "bg-orange-600 text-zinc-200"
-                                }`}
-                            >
-                                {!table.startsWith("_") && (
-                                    <span className="invisible">_</span>
-                                )}
-                                {table}
-                            </div>
-                        </Link>
-                    ))}
-                </div>
-            </div> */}
             <div className="bg-zinc-600 w-px h-full" />
             <div className="flex-1 mx-2 flex flex-col space-y-3">
                 <div className="flex flex-col h-full relative">

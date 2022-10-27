@@ -3,6 +3,7 @@ import { json } from "@remix-run/node";
 import { Link, Outlet, useLoaderData, useParams } from "@remix-run/react";
 import { makeDomainFunction } from "domain-functions";
 import { Form, formAction } from "remix-forms";
+import { EntityList } from "~/components/admin";
 import { Modal } from "~/kit";
 import { db } from "~/lib/database.server";
 import { unpackId } from "~/lib/helper";
@@ -34,25 +35,16 @@ export default function () {
 
     return (
         <div className="flex flex-row py-2 select-none h-full">
-            <div className="flex flex-col mr-2 ml-2">
+            <EntityList
+                entities={tenants}
+                linkPrefix="/admin/tenant/"
+                activePredicate={(tenant) => params.tenant === unpackId(tenant)}
+                labelProperty="name"
+            >
                 <Link className="button" to="?action=create-tenant">
                     NEW TENANT
                 </Link>
-                <div className="flex flex-col text-sm mt-2 flex-1">
-                    {tenants.map((tenant) => (
-                        <Link to={unpackId(tenant)} key={tenant.id}>
-                            <div
-                                className={`rounded px-2 mt-1 select-none cursor-pointer ${
-                                    params.tenant === unpackId(tenant) &&
-                                    "bg-orange-600 text-zinc-200"
-                                }`}
-                            >
-                                {tenant.name}
-                            </div>
-                        </Link>
-                    ))}
-                </div>
-            </div>
+            </EntityList>
             <div className="bg-zinc-600 w-px h-full" />
             <div className="flex-1 mx-2 flex flex-col space-y-3">
                 <Outlet />
