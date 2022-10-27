@@ -2,13 +2,18 @@ import type { ActionFunction, LoaderFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import {
     Link,
+    Outlet,
     useFetcher,
     useLoaderData,
     useParams,
     useSearchParams,
 } from "@remix-run/react";
+import { makeDomainFunction } from "domain-functions";
 import { useState } from "react";
+import { Form, formAction } from "remix-forms";
+import { z } from "zod";
 import { EntityList } from "~/components/admin";
+import { Modal } from "~/kit";
 import { db } from "~/lib/database.server";
 import { unpackId } from "~/lib/helper";
 import { Identity } from "~/lib/types";
@@ -28,22 +33,26 @@ export const loader: LoaderFunction = async ({ request }) => {
     return json({ identities });
 };
 
-export const action: ActionFunction = async ({ request }) => {
-    // const url = new URL(request.url);
-    // switch (url.searchParams.get("action")) {
-    //     case "delete-rows": {
-    //         const form = await request.formData();
-    //         const table = form.get("table") as string;
-    //         const ids = (form.get("ids") as string).split(",");
-    //         console.log(table, ids);
-    //         for (const id of ids) {
-    //             await db.query(`DELETE FROM ${table} WHERE id = ${id}`);
-    //         }
-    //         return null;
-    //     }
-    // }
-    throw json({ error: "Bad request" }, { status: 400 });
-};
+type IdentityInput = z.infer<typeof IdentityInput>;
+const IdentityInput = z.object({
+    username: z.string(),
+    password: z.string(),
+});
+
+export const action: ActionFunction = async ({ request }) =>
+    formAction({
+        request,
+        schema: IdentityInput,
+        mutation: makeDomainFunction(IdentityInput)(async (identity) => {
+            return (await db.query(
+                `CREATE _identity SET username = '${identity.username}', password = crypto::argon2::generate('${identity.password}')`,
+                true,
+            )) as Identity;
+        }),
+        successPath: (identity: Identity) => {
+            return `/admin/identity/${unpackId(identity)}`;
+        },
+    });
 
 export default function () {
     const { identities } = useLoaderData<LoaderData>();
@@ -57,9 +66,39 @@ export default function () {
                 linkPrefix="/admin/identity/"
                 activePredicate={(identity) =>
                     params.identity === unpackId(identity)}
-            />
+            >
+                <Link className="button" to="?action=create-identity">
+                    NEW IDENTITY
+                </Link>
+            </EntityList>
             <div className="bg-zinc-600 w-px h-full" />
-            <div className="flex-1 mx-2 flex flex-col space-y-3" />
+            <div className="flex-1 mx-2 flex flex-col space-y-3">
+                <Outlet />
+            </div>
+            <Modal
+                name="create-identity"
+                title="Create Identity"
+                focus="username"
+            >
+                <Form
+                    schema={IdentityInput}
+                    // values={{ username: "" }}
+                    buttonLabel="Create"
+                    pendingButtonLabel="Create"
+                >
+                    {({ Field, Errors, Button }) => (
+                        <>
+                            <Field name="username" label="Username" />
+                            <Field
+                                name="password"
+                                label="Password"
+                                type="password"
+                            />
+                            <Button />
+                        </>
+                    )}
+                </Form>
+            </Modal>
         </div>
     );
 }
