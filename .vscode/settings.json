@@ -14,4 +14,7 @@
     "editor.quickSuggestions": {
         "strings": true
     },
+    "[typescriptreact]": {
+        "editor.defaultFormatter": "rome.rome"
+    },
 }

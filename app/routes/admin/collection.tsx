@@ -4,6 +4,7 @@ import { Link, Outlet, useLoaderData, useParams } from "@remix-run/react";
 import { makeDomainFunction } from "domain-functions";
 import { capitalize, pluralize } from "inflection";
 import { Form, formAction } from "remix-forms";
+import { EntityList } from "~/components/admin";
 import { Modal } from "~/kit";
 import { db } from "~/lib/database.server";
 import { unpackId } from "~/lib/helper";
@@ -36,28 +37,19 @@ export default function () {
 
     return (
         <div className="flex flex-row py-2 select-none h-full">
-            <div className="flex flex-col mr-2 ml-2">
-                <Link
-                    className="text-xs border py-px px-1 rounded border-zinc-400 text-zinc-400 bg-zinc-600 cursor-pointer text-center w-36"
-                    to="?action=create-collection"
-                >
-                    NEW
+            <EntityList
+                entities={collections}
+                linkPrefix="/admin/collection/"
+                activePredicate={(collection) =>
+                    params.collection === unpackId(collection)}
+                labelProperty="name"
+                pluralizeLabel={true}
+                capitalizeLabel={true}
+            >
+                <Link className="button" to="?action=create-collection">
+                    NEW COLLECTION
                 </Link>
-                <div className="flex flex-col text-sm mt-4 flex-1">
-                    {collections.map((collection) => (
-                        <Link to={unpackId(collection)} key={collection.id}>
-                            <div
-                                className={`rounded px-2 mt-1 select-none cursor-pointer ${
-                                    params.id === unpackId(collection) &&
-                                    "bg-orange-600 text-zinc-200"
-                                }`}
-                            >
-                                {pluralize(capitalize(collection.name))}
-                            </div>
-                        </Link>
-                    ))}
-                </div>
-            </div>
+            </EntityList>
             <div className="bg-zinc-600 w-px h-full" />
             <div className="flex-1 mx-2 flex flex-col">
                 <Outlet />

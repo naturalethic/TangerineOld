@@ -54,7 +54,8 @@ export default function () {
             <EntityList
                 entities={identities}
                 labelProperty="username"
-                selectedPredicate={(identity) =>
+                linkPrefix="/admin/identity/"
+                activePredicate={(identity) =>
                     params.identity === unpackId(identity)}
             />
             <div className="bg-zinc-600 w-px h-full" />
