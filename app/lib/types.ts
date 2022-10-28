@@ -49,4 +49,5 @@ export const Session = Identified.extend({
 export type Identity = z.infer<typeof Identity>;
 export const Identity = Identified.extend({
     username: z.string(),
+    admin: z.boolean(),
 });

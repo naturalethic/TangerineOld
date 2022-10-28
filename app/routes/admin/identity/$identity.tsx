@@ -1,9 +1,11 @@
 import type { LoaderFunction } from "@remix-run/node";
 import { ActionFunction, json } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
+import { useActionData, useLoaderData } from "@remix-run/react";
+import { makeDomainFunction } from "domain-functions";
+import { Form, formAction } from "remix-forms";
 import { z } from "zod";
+import { Flash } from "~/kit/flash";
 import { db } from "~/lib/database.server";
-import model from "~/lib/model";
 import { Identity } from "~/lib/types";
 
 const Params = z.object({ identity: z.string() });
@@ -16,8 +18,60 @@ export const loader: LoaderFunction = async ({ params }) => {
     return json({ identity });
 };
 
+type IdentityInput = z.infer<typeof IdentityInput>;
+const IdentityInput = z.object({
+    id: z.string(),
+    username: z.string(),
+    password: z.string().optional(),
+    admin: z.boolean(),
+});
+
+export const action: ActionFunction = async ({ request }) =>
+    formAction({
+        request,
+        // successPath: "/admin/identity",
+        schema: IdentityInput,
+        mutation: makeDomainFunction(IdentityInput)(async (identity) => {
+            // return await db.create("_collection", collection);
+            await db.update(identity);
+            if (identity.password) {
+                identity.password = (
+                    await db.query(
+                        `SELECT * FROM crypto::argon2::generate('${identity.password}')`,
+                    )
+                )[0];
+            } else {
+                delete identity.password;
+            }
+            await db.update(identity);
+            return { flash: "Record saved" };
+            // return (await db.query(
+            //     `CREATE _identity SET username = '${identity.username}', password = crypto::argon2::generate('${identity.password}')`,
+            //     true,
+            // )) as Identity;
+        }),
+        // successPath: (collection: Collection) => {
+        //     return `/admin/collection/${unpackId(collection)}`;
+        // },
+    });
+
 export default function () {
     const { identity } = useLoaderData<LoaderData>();
+    const action = useActionData();
+    const values = { ...identity, password: "" };
 
-    return <div>{identity.username}</div>;
+    return (
+        <div key={identity.id}>
+            {action && action.flash && (
+                <Flash level="info" message={action.flash} />
+            )}
+            <Form
+                schema={IdentityInput}
+                values={values}
+                hiddenFields={["id"]}
+                buttonLabel="Save"
+                pendingButtonLabel="Save"
+            />
+        </div>
+    );
 }

@@ -41,6 +41,10 @@ form select {
     @apply border rounded border-zinc-400 bg-zinc-800 text-zinc-400 px-2 py-1;
 }
 
+form div:has(> input[type=checkbox]) {
+    @apply flex flex-row items-center space-x-1 mt-2;
+}
+
 form [role=alert] {
     @apply text-red-500;
 }

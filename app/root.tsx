@@ -6,13 +6,16 @@ import {
     redirect,
 } from "@remix-run/node";
 import {
+    Link,
     Links,
     LiveReload,
     Meta,
     Outlet,
     Scripts,
     ScrollRestoration,
+    useLoaderData,
 } from "@remix-run/react";
+import { IoMdLogOut } from "react-icons/io";
 import { getSession } from "./lib/session.server";
 
 export const links: LinksFunction = () => {
@@ -48,11 +51,14 @@ export const loader: LoaderFunction = async ({ request }) => {
         if (!session.get("identity")) {
             return redirect("/login", { headers: await session.commit() });
         }
+        return await session.identity();
     }
     return null;
 };
 
 export default function () {
+    const identity = useLoaderData();
+
     return (
         <html lang="en">
             <head>
@@ -64,6 +70,14 @@ export default function () {
                 <ScrollRestoration />
                 <Scripts />
                 <LiveReload />
+                {identity && (
+                    <Link
+                        to="/logout"
+                        className="fixed text-orange-600 top-0 right-0 mr-2 mt-2"
+                    >
+                        <IoMdLogOut />
+                    </Link>
+                )}
             </body>
         </html>
     );
