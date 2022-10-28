@@ -1,9 +1,12 @@
 {
-    "scripts": {
+      "scripts": {
         "build": "remix build",
         "dev": "remix dev",
         "start": "remix-serve build",
         "sql": "surreal sql --conn http://localhost:8000 --user root --pass root --ns test --db test --pretty"
+    },
+    "engines": {
+        "node": "18.11.0"
     },
     "dependencies": {
         "@faker-js/faker": "^7.6.0",

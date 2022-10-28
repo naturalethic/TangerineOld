@@ -1,7 +1,7 @@
 import { createSessionStorage, Session as RemixSession } from "@remix-run/node";
 import { db } from "./database.server";
 import { unpackId } from "./helper";
-import { Session as SessionBase } from "./types";
+import { Identity, Session as SessionBase } from "./types";
 
 function createDatabaseSessionStorage() {
     return createSessionStorage({
@@ -15,7 +15,6 @@ function createDatabaseSessionStorage() {
             return unpackId(session.id);
         },
         async readData(id) {
-            console.log("readData", id);
             return (await db.select<SessionBase>("_session", id))?.data;
         },
         async updateData(id, data, expires) {
@@ -73,8 +72,16 @@ class Session {
         return { "Set-Cookie": await storage.commitSession(this.session) };
     }
 
-    async destroy(): Promise<void> {
-        await storage.destroySession(this.session);
+    async destroy(): Promise<Record<string, string>> {
+        return { "Set-Cookie": await storage.destroySession(this.session) };
+    }
+
+    async identity(): Promise<Identity | null> {
+        const id = this.session.get("identity");
+        if (id) {
+            return await db.select<Identity>("_identity", id);
+        }
+        return null;
     }
 }
 
