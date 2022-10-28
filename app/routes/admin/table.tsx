@@ -130,66 +130,56 @@ export default function () {
                 activePredicate={(table) => table === search.get("name")}
             />
             <div className="bg-zinc-600 w-px h-full" />
-            <div className="flex-1 mx-2 flex flex-col space-y-3">
-                <div className="flex flex-col h-full relative">
-                    <div className="flex flex-col bg-zinc-800 rounded pb-4 pt-8 h-full overflow-auto scrollbar-thin scrollbar-thumb-orange-900">
-                        <table className="table-auto border-collapse text-sm">
-                            {rows.length > 0 && (
-                                <thead>
-                                    <tr>
-                                        {sortKeys(Object.keys(rows[0])).map(
-                                            (key) => (
-                                                <th
-                                                    key={key}
-                                                    className="border-b border-zinc-600 p-4 pl-8 pt-0 pb-3 text-zinc-200 text-left"
-                                                >
-                                                    {key}
-                                                </th>
-                                            ),
-                                        )}
-                                    </tr>
-                                </thead>
-                            )}
-                            <tbody>
-                                {rows.map((row: any) => (
-                                    <tr
-                                        key={row.id}
-                                        className={`text-zinc-400 ${
-                                            selectedRows.includes(row.id) &&
-                                            selectedClass
-                                        }`}
-                                        onClick={() => onRowClick(row.id)}
+            <div className="ml-2 mr-2 bg-zinc-800 rounded pb-4 pt-8 h-full w-full overflow-auto scrollbar-thin scrollbar-thumb-orange-900 relative">
+                <table className="table-auto border-collapse text-sm w-full">
+                    {rows.length > 0 && (
+                        <thead>
+                            <tr>
+                                {sortKeys(Object.keys(rows[0])).map((key) => (
+                                    <th
+                                        key={key}
+                                        className="border-b border-zinc-600 p-4 pl-8 pt-0 pb-3 text-zinc-200 text-left"
                                     >
-                                        {sortKeys(Object.keys(row)).map(
-                                            (key) => (
-                                                <td
-                                                    key={key}
-                                                    className={
-                                                        "border-b border-zinc-700 p-4 pl-8 select-text"
-                                                    }
-                                                >
-                                                    {key === "id"
-                                                        ? row[key].split(":")[1]
-                                                        : JSON.stringify(
-                                                              row[key],
-                                                          )}
-                                                </td>
-                                            ),
-                                        )}
-                                    </tr>
+                                        {key}
+                                    </th>
                                 ))}
-                            </tbody>
-                        </table>
-                    </div>
-                    {selectedRows.length > 0 && (
-                        <div className="flex flex-row justify-center absolute bottom-4 w-full">
-                            <div className="bg-zinc-500 text-sm rounded-xl px-4 py-px">
-                                {selectedRows.length} row
-                                {selectedRows.length > 1 && "s"} selected
-                            </div>
-                        </div>
+                            </tr>
+                        </thead>
                     )}
-                </div>
+                    <tbody>
+                        {rows.map((row: any) => (
+                            <tr
+                                key={row.id}
+                                className={`text-zinc-400 ${
+                                    selectedRows.includes(row.id) &&
+                                    selectedClass
+                                }`}
+                                onClick={() => onRowClick(row.id)}
+                            >
+                                {sortKeys(Object.keys(row)).map((key) => (
+                                    <td
+                                        key={key}
+                                        className={
+                                            "border-b border-zinc-700 p-4 pl-8 select-text"
+                                        }
+                                    >
+                                        {key === "id"
+                                            ? row[key].split(":")[1]
+                                            : JSON.stringify(row[key])}
+                                    </td>
+                                ))}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+                {selectedRows.length > 0 && (
+                    <div className="flex flex-row justify-center absolute bottom-4 w-full">
+                        <div className="bg-zinc-500 text-sm rounded-xl px-4 py-px">
+                            {selectedRows.length} row
+                            {selectedRows.length > 1 && "s"} selected
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
