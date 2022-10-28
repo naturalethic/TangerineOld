@@ -13,7 +13,7 @@
 
 ##### Create an initial user
 - `npm run sql`
-- `> CREATE _identity SET username = 'admin', password = crypto::argon2::generate('admin')`
+- `> CREATE _identity SET username = 'admin', password = crypto::argon2::generate('admin'), admin = true`
 
 #### Setup project
 - `npm install`
