@@ -1,10 +1,15 @@
+# Node modules
 node_modules
 
+# Environment variables
+.env
+
+# Remix
 /.cache
 /build
 /public/build
 /app/styles/app.css
-.env
-history.txt
 
+# SurrealDB
 /db
+history.txt
