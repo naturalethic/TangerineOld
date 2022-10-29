@@ -24,3 +24,19 @@
 ```sh
 npm run dev
 ```
+
+## Known Issues
+
+### Remix
+
+If you fire up the app for the first time and notice this in your browser
+console:
+
+> Warning: Did not expect server HTML to contain a \<script> in \<html>.
+
+... and/or several hydration errors, make sure you don't have [browser extensions injecting \<script> tags and causing issues](https://github.com/remix-run/remix/blob/main/docs/pages/gotchas.md#browser-extensions-injecting-code).
+
+While you're at it, make sure to checkout all of
+[Remix's
+Gotchas](https://github.com/remix-run/remix/blob/main/docs/pages/gotchas.md).
+
