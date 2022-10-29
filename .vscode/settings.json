@@ -5,6 +5,7 @@
     "editor.formatOnSave": true,
     "editor.formatOnSaveMode": "file",
     "files.autoSave": "onFocusChange",
+    "files.insertFinalNewline": true,
     "[jsonc]": {
         "editor.defaultFormatter": "vscode.json-language-features"
     },
