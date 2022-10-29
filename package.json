@@ -3,7 +3,8 @@
         "build": "remix build",
         "dev": "remix dev",
         "start": "remix-serve build",
-        "sql": "surreal sql --conn http://localhost:8000 --user root --pass root --ns test --db test --pretty"
+        "sql:start": "surreal start --user root --pass root file://db",
+        "sql:connect": "surreal sql --conn http://localhost:8000 --user root --pass root --ns test --db test --pretty"
     },
     "engines": {
         "node": "^18.11.0"
