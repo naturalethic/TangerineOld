@@ -97,9 +97,8 @@ export default function () {
     };
 
     useHotkeys(
-        "del",
+        "del, backspace",
         () => {
-            console.log("DEL", selectedRows);
             if (selectedRows.length === 0) {
                 return;
             }

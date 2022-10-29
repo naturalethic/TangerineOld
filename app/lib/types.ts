@@ -49,5 +49,7 @@ export const Session = Identified.extend({
 export type Identity = z.infer<typeof Identity>;
 export const Identity = Identified.extend({
     username: z.string(),
+    password: z.string(),
     admin: z.boolean(),
+    roles: z.record(z.enum(["owner", "editor", "creator", "moderator"])),
 });

@@ -1,15 +1,7 @@
 import type { ActionFunction, LoaderFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
-import {
-    Link,
-    Outlet,
-    useFetcher,
-    useLoaderData,
-    useParams,
-    useSearchParams,
-} from "@remix-run/react";
+import { Link, Outlet, useLoaderData, useParams } from "@remix-run/react";
 import { makeDomainFunction } from "domain-functions";
-import { useState } from "react";
 import { Form, formAction } from "remix-forms";
 import { z } from "zod";
 import { EntityList } from "~/components/admin";
@@ -22,14 +14,6 @@ type LoaderData = { identities: Identity[] };
 
 export const loader: LoaderFunction = async ({ request }) => {
     const identities = await db.query("SELECT id, username FROM _identity");
-    // const tables = await db.tables();
-    // const url = new URL(request.url);
-    // let rows: any[] = [];
-    // if (url.searchParams.has("name")) {
-    //     rows = (await db.query(
-    //         `SELECT * FROM ${url.searchParams.get("name")}`,
-    //     )) as any[];
-    // }
     return json({ identities });
 };
 
@@ -45,7 +29,13 @@ export const action: ActionFunction = async ({ request }) =>
         schema: IdentityInput,
         mutation: makeDomainFunction(IdentityInput)(async (identity) => {
             return (await db.query(
-                `CREATE _identity SET username = '${identity.username}', password = crypto::argon2::generate('${identity.password}')`,
+                `
+                CREATE _identity
+                   SET username = '${identity.username}',
+                       password = crypto::argon2::generate('${identity.password}'),
+                       admin = false,
+                       roles = {}
+                `,
                 true,
             )) as Identity;
         }),
