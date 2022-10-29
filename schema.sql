@@ -12,4 +12,4 @@ DEFINE SCOPE identity SESSION 24h
     )
 ;
 
-CREATE _identity SET username = 'admin', password = crypto::argon2::generate('admin');
+CREATE _identity SET username = 'admin', password = crypto::argon2::generate('admin'), admin = true;
