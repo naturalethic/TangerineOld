@@ -1,4 +1,4 @@
-import Surreal, { Result } from "surrealdb.js";
+import Surreal from "surrealdb.js";
 import type { Identified } from "./types";
 
 class Database {
@@ -112,11 +112,42 @@ class Connection {
         await this.db.use(this.namespace, this.database);
     }
 
-    async query<T = Result[]>(
+    async query<T>(
+        query: string,
+        vars?: Record<string, unknown>,
+    ): Promise<T[]> {
+        const result = await this.db.query(query, vars);
+        if (result.length) {
+            return result[result.length - 1].result as T[];
+        }
+        return [];
+    }
+
+    async queryFirst<T>(
         query: string,
         vars?: Record<string, unknown>,
     ): Promise<T> {
-        return this.db.query(query, vars);
+        return (await this.query<T>(query, vars))[0];
+    }
+
+    async select<T>(thing: string): Promise<T[]> {
+        return this.db.select(thing);
+    }
+
+    async selectFirst<T>(thing: string): Promise<T> {
+        return (await this.select<T>(thing))[0];
+    }
+
+    async change<T extends Identified>(record: T) {
+        console.log(record);
+        this.db.change(record.id, record);
+    }
+
+    async create<T extends Identified>(
+        table: string,
+        record: Record<string, unknown> = {},
+    ) {
+        return this.db.create(table, record);
     }
 }
 
@@ -168,18 +199,18 @@ class Pool {
 const pool = new Pool(10);
 
 export async function withDb(
-    fn: (db: Database) => Promise<any>,
+    fn: (db: Connection) => Promise<any>,
 ): Promise<void> {
-    const connection = await pool.acquire();
+    const db = await pool.acquire();
     try {
         return await fn(db);
     } finally {
-        await pool.release(connection);
+        await pool.release(db);
     }
 }
 
 /**
- * Attempted higher order function approach to automatic collection closing.
+ * Attempted higher order function approach to automatic connection closing.
  * This doesn't work because it produces a side effect in the client bundle.
  */
 
