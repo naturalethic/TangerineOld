@@ -1,6 +1,7 @@
+import Surreal, { Result } from "surrealdb.js";
 import type { Identified } from "./types";
 
-export class Database {
+class Database {
     namespace: string;
     database: string;
 
@@ -89,3 +90,124 @@ export class Database {
 }
 
 export const db = new Database();
+
+class Connection {
+    namespace: string;
+    database: string;
+    acquired: boolean;
+    db: Surreal;
+
+    constructor(namespace: string = "test", database: string = "test") {
+        this.namespace = namespace;
+        this.database = database;
+        this.acquired = false;
+        this.db = new Surreal(`${process.env.DATABASE_ENDPOINT!}/rpc`);
+    }
+
+    async connect() {
+        await this.db.signin({
+            user: "root",
+            pass: "root",
+        });
+        await this.db.use(this.namespace, this.database);
+    }
+
+    async query<T = Result[]>(
+        query: string,
+        vars?: Record<string, unknown>,
+    ): Promise<T> {
+        return this.db.query(query, vars);
+    }
+}
+
+class Pool {
+    max: number;
+    connections: Connection[];
+    waitlist: ((connection: Connection) => void)[];
+
+    constructor(max: number) {
+        this.max = max;
+        this.connections = [];
+        this.waitlist = [];
+    }
+
+    async acquire(): Promise<Connection> {
+        let connection: Connection | null = null;
+        for (let i = 0; i < this.connections.length; i++) {
+            if (!this.connections[i].acquired) {
+                connection = this.connections[i];
+                connection.acquired = true;
+                break;
+            }
+        }
+        if (!connection) {
+            if (this.connections.length < this.max) {
+                connection = new Connection();
+                connection.acquired = true;
+                this.connections.push(new Connection());
+                await connection.connect();
+            }
+        }
+        if (connection) {
+            return connection;
+        }
+        return new Promise((resolve) => {
+            this.waitlist.push(resolve);
+        });
+    }
+
+    async release(connection: Connection) {
+        if (this.waitlist.length) {
+            this.waitlist.shift()!(connection);
+        } else {
+            connection.acquired = false;
+        }
+    }
+}
+
+const pool = new Pool(10);
+
+export async function withDb(
+    fn: (db: Database) => Promise<any>,
+): Promise<void> {
+    const connection = await pool.acquire();
+    try {
+        return await fn(db);
+    } finally {
+        await pool.release(connection);
+    }
+}
+
+/**
+ * Attempted higher order function approach to automatic collection closing.
+ * This doesn't work because it produces a side effect in the client bundle.
+ */
+
+// import type {
+//     AppData,
+//     DataFunctionArgs,
+//     LoaderFunction,
+// } from "@remix-run/node";
+
+// export interface ConnectedDataFunctionArgs extends DataFunctionArgs {
+//     db: Connection;
+// }
+
+// export interface ConnectedLoaderFunction {
+//     (args: ConnectedDataFunctionArgs):
+//         | Promise<Response>
+//         | Response
+//         | Promise<AppData>
+//         | AppData;
+// }
+
+// export function dbLoader(fn: ConnectedLoaderFunction): LoaderFunction {
+//     return async function (args: DataFunctionArgs) {
+//         const db = await pool.acquire();
+//         try {
+//             return await fn({ ...args, db });
+//         } finally {
+//             await pool.release(db);
+//         }
+//     };
+// }

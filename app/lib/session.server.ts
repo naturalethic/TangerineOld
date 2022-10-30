@@ -1,4 +1,8 @@
-import { createSessionStorage, Session as RemixSession } from "@remix-run/node";
+import {
+    createSessionStorage,
+    redirect,
+    Session as RemixSession,
+} from "@remix-run/node";
 import { db } from "./database.server";
 import { unpackId } from "./helper";
 import { Identity, Session as SessionBase } from "./types";
@@ -87,4 +91,14 @@ class Session {
 
 export const getSession = async (request: Request): Promise<Session> => {
     return await Session.get(request);
+};
+
+export const requireIdentifiedSession = async (
+    request: Request,
+): Promise<Session> => {
+    const session = await getSession(request);
+    if (!session.has("identity")) {
+        throw redirect("/login");
+    }
+    return session;
 };

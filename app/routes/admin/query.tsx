@@ -1,19 +1,19 @@
 import type { ActionFunction, LoaderFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useFetcher, useLoaderData, useSearchParams } from "@remix-run/react";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { JSONTree } from "react-json-tree";
-import { z } from "zod";
-import { db } from "~/lib/database.server";
-import { packId, unpackId } from "~/lib/helper";
-import model from "~/lib/model";
+import { db, withDb } from "~/lib/database.server";
+import { packId } from "~/lib/helper";
 import { Query } from "~/lib/types";
 
 type LoaderData = { queries: Query[] };
 
 export const loader: LoaderFunction = async () => {
-    const queries = await model.query.all();
-    return json({ queries });
+    return withDb(async (db) => {
+        const queries = await db.query("SELECT * FROM _query");
+        return json({ queries });
+    });
 };
 
 export const action: ActionFunction = async ({ request }) => {
