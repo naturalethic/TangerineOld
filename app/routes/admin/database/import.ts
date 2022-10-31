@@ -5,7 +5,6 @@ import {
     unstable_parseMultipartFormData,
 } from "@remix-run/node";
 import Zip from "jszip";
-import { exec } from "shelljs";
 import { withDb } from "~/lib/database.server";
 
 export const action: ActionFunction = async ({ request }) => {
@@ -20,12 +19,8 @@ export const action: ActionFunction = async ({ request }) => {
         const database = /Export\/(.*)\.sql/.exec(name)?.[1];
         await withDb(async (db) => {
             await db.query(`REMOVE DATABASE ${database}`);
+            await db.query(await file.async("string"));
         });
-        const command = `surreal import --conn http://localhost:8000 --user root --pass root --ns test --db ${database} /dev/stdin`;
-        console.info(command);
-        const ps = exec(command, { async: true });
-        ps.stdin!.write(await file.async("string"));
-        ps.stdin!.end();
     }
-    return redirect("/admin/database");
+    return redirect("/");
 };

@@ -1,8 +1,7 @@
-import type { ActionFunction, DataFunctionArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
+import { DataFunctionArgs, json } from "@remix-run/node";
+import { Params } from "@remix-run/react";
 import { makeDomainFunction } from "domain-functions";
-import type { FormSchema } from "remix-forms";
-import { formAction } from "remix-forms";
+import { FormSchema, performMutation } from "remix-forms";
 import { z } from "zod";
 import { Connection, withDb } from "./database.server";
 import { Session } from "./session.server";
@@ -13,6 +12,29 @@ interface Environment {
     session: Session;
     identity: Identity | null;
     url: URL;
+    params: Params;
+    method: string;
+}
+
+async function makeEnv(db: Connection, request: Request, params: Params) {
+    const session = await Session.get(request);
+    return {
+        db,
+        session,
+        identity: await session.identity(),
+        url: new URL(request.url),
+        params,
+        method: request.method,
+    };
+}
+
+export function loaderFunction(
+    fn: (environment: Environment) => Promise<unknown>,
+) {
+    return async ({ request, params }: DataFunctionArgs) =>
+        withDb(async (db) => {
+            return json((await fn(await makeEnv(db, request, params))) ?? {});
+        });
 }
 
 export function actionFunction<Schema extends FormSchema>(
@@ -22,40 +44,17 @@ export function actionFunction<Schema extends FormSchema>(
         environment: Environment,
     ) => Promise<unknown>,
 ) {
-    return async ({ request }: DataFunctionArgs) =>
-        formAction({
-            request,
-            schema,
-            mutation: makeDomainFunction(schema)(
-                async (input) =>
-                    await withDb(async (db) => {
-                        const session = await Session.get(request);
-                        return (
-                            (await fn(input, {
-                                db,
-                                session,
-                                identity: await session.identity(),
-                                url: new URL(request.url),
-                            })) ?? {}
-                        );
-                    }),
-            ),
-        });
-}
-
-export function loaderFunction(
-    fn: (environment: Environment) => Promise<unknown>,
-) {
-    return async ({ request }: DataFunctionArgs) =>
-        withDb(async (db) => {
-            const session = await Session.get(request);
-            return json(
-                (await fn({
-                    db,
-                    session,
-                    identity: await session.identity(),
-                    url: new URL(request.url),
-                })) ?? {},
-            );
-        });
+    return async ({ request, params }: DataFunctionArgs) => {
+        const mutation = makeDomainFunction(schema)(
+            async (input) =>
+                await withDb(async (db) => {
+                    return (
+                        (await fn(input, await makeEnv(db, request, params))) ??
+                        {}
+                    );
+                }),
+        );
+        const result = await performMutation({ request, schema, mutation });
+        return result.success ? result.data : result.errors;
+    };
 }

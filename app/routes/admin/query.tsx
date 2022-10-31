@@ -1,3 +1,4 @@
+import { LoaderFunction } from "@remix-run/node";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { useState } from "react";
 import { JSONTree } from "react-json-tree";
@@ -7,12 +8,11 @@ import { Query } from "~/lib/types";
 
 type LoaderData = { queries: Query[] };
 
-export const loader = () =>
+export const loader: LoaderFunction = (args) =>
     loaderFunction(async ({ db }) => ({
         queries: await db.query("SELECT * FROM _query ORDER BY created DESC"),
-    }))();
+    }))(args);
 
-type QueryInput = z.infer<typeof QueryInput>;
 const QueryInput = z.object({
     statement: z.string(),
 });

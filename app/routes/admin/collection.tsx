@@ -15,12 +15,12 @@ import { Collection } from "~/lib/types";
 
 type LoaderData = { collections: Collection[] };
 
-export const loader = () =>
+export const loader: LoaderFunction = (args) =>
     loaderFunction(async ({ db }) => ({
         collections: await db.query(
             "SELECT * FROM _collection ORDER BY name ASC",
         ),
-    }))();
+    }))(args);
 
 export const action = actionFunction(Collection, async (collection, { db }) => {
     await db.create("_collection", collection);

@@ -4,7 +4,7 @@ import {
     SessionStorage,
 } from "@remix-run/node";
 import { withDb } from "./database.server";
-import { unpackId } from "./helper";
+import { packId, unpackId } from "./helper";
 import { Identity, Session as SessionBase } from "./types";
 
 function createDatabaseSessionStorage() {
@@ -21,18 +21,20 @@ function createDatabaseSessionStorage() {
         },
         async readData(id) {
             return withDb(async (db) => {
-                return (await db.select<SessionBase>("_session", id))?.data;
+                try {
+                    return (await db.select<SessionBase>("_session", id))?.data;
+                } catch (error) {
+                    return null;
+                }
             });
         },
         async updateData(id, data, expires) {
             await withDb(async (db) => {
-                const session = await db.select<SessionBase>("_session", id);
-                console.log("UPDATING SESSION", session);
-                if (session) {
-                    session.data = data;
-                    session.expires = expires;
-                    await db.change(session);
-                }
+                await db.update<SessionBase>({
+                    id: packId("_session", id),
+                    data,
+                    expires,
+                });
             });
         },
         async deleteData(id) {
