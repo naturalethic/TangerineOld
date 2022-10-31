@@ -15,32 +15,6 @@ interface Environment {
     url: URL;
 }
 
-// export function actionFunction<Schema extends FormSchema>(
-//     schema: Schema,
-//     fn: (
-//         input: z.infer<typeof schema>,
-//         environment: Environment,
-//     ) => Promise<unknown>,
-// ): ActionFunction {
-//     return async ({ request }) =>
-//         formAction({
-//             request,
-//             schema,
-//             mutation: makeDomainFunction(schema)(
-//                 async (input) =>
-//                     await withDb(async (db) => {
-//                         const session = await Session.get(request);
-//                         return await fn(input, {
-//                             db,
-//                             session,
-//                             identity: await session.identity(),
-//                             url: new URL(request.url),
-//                         });
-//                     }),
-//             ),
-//         });
-// }
-
 export function actionFunction<Schema extends FormSchema>(
     schema: Schema,
     fn: (
@@ -56,12 +30,14 @@ export function actionFunction<Schema extends FormSchema>(
                 async (input) =>
                     await withDb(async (db) => {
                         const session = await Session.get(request);
-                        return await fn(input, {
-                            db,
-                            session,
-                            identity: await session.identity(),
-                            url: new URL(request.url),
-                        });
+                        return (
+                            (await fn(input, {
+                                db,
+                                session,
+                                identity: await session.identity(),
+                                url: new URL(request.url),
+                            })) ?? {}
+                        );
                     }),
             ),
         });

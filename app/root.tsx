@@ -54,18 +54,6 @@ export const loader: LoaderFunction = (args) =>
         throw redirect("/login", { headers: await session.commit() });
     })(args);
 
-// export const loader: LoaderFunction = async ({ request }) => {
-//     const url = new URL(request.url);
-//     if (!["/login", "/signup"].includes(url.pathname)) {
-//         const session = await getSession(request);
-//         if (!session.get("identity")) {
-//             return redirect("/login", { headers: await session.commit() });
-//         }
-//         return await session.identity();
-//     }
-//     return null;
-// };
-
 export default function () {
     const { identity } = useLoaderData();
 

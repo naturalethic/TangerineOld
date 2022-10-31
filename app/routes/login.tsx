@@ -14,7 +14,6 @@ const LoginForm = z.object({
 
 export const loader: LoaderFunction = (args) =>
     loaderFunction(async ({ identity }) => {
-        console.log("IDENTITY", identity);
         if (identity) {
             throw redirect("/");
         }
@@ -27,10 +26,9 @@ export const action: ActionFunction = (args) =>
             const identity = await db.queryFirst<Identity>(
                 `SELECT * FROM _identity WHERE username = '${username}' AND crypto::argon2::compare(password, '${password}')`,
             );
-
             if (identity) {
                 session.set("identity", unpackId(identity.id));
-                throw redirect("/", { headers: await session.commit() });
+                return redirect("/", { headers: await session.commit() });
             } else {
                 throw toErrorWithMessage("Invalid username or password");
             }
