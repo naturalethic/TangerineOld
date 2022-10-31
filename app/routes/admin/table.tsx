@@ -9,37 +9,59 @@ import {
 import { useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { EntityList } from "~/components/admin";
-import { db } from "~/lib/database.server";
+import { withDb } from "~/lib/database.server";
+// import { db } from "~/lib/database.server";
+import { loaderFunction } from "~/lib/loader";
 
 type LoaderData = { tables: string[]; rows: any[] };
 
-export const loader: LoaderFunction = async ({ request }) => {
-    const tables = await db.tables();
-    const url = new URL(request.url);
-    let rows: any[] = [];
-    if (url.searchParams.has("name")) {
-        rows = (await db.query(
-            `SELECT * FROM ${url.searchParams.get("name")}`,
-        )) as any[];
-    }
-    return json({ tables, rows });
-};
+export const loader: LoaderFunction = ({ request }) =>
+    loaderFunction(async ({ db }) => {
+        const info = await db.query("INFO FOR db");
+        // const tables = Object.keys((await db.query("INFO FOR db")) as a .tb);
+        // const url = new URL(request.url);
+        // let rows: any[] = [];
+        // if (url.searchParams.has("name")) {
+        //     rows = (await db.query(
+        //         `SELECT * FROM ${url.searchParams.get("name")}`,
+        //     )) as any[];
+        // }
+        const tables: any[] = [];
+        const rows: any[] = [];
+        return {
+            tables,
+            rows,
+        };
+    })();
+
+// export const loader: LoaderFunction = async ({ request }) => {
+//     const tables = await db.tables();
+//     const url = new URL(request.url);
+//     let rows: any[] = [];
+//     if (url.searchParams.has("name")) {
+//         rows = (await db.query(
+//             `SELECT * FROM ${url.searchParams.get("name")}`,
+//         )) as any[];
+//     }
+//     return json({ tables, rows });
+// };
 
 export const action: ActionFunction = async ({ request }) => {
-    const url = new URL(request.url);
-    switch (url.searchParams.get("action")) {
-        case "delete-rows": {
-            const form = await request.formData();
-            const table = form.get("table") as string;
-            const ids = (form.get("ids") as string).split(",");
-            console.log(table, ids);
-            for (const id of ids) {
-                await db.query(`DELETE FROM ${table} WHERE id = ${id}`);
+    return withDb(async (db) => {
+        const url = new URL(request.url);
+        switch (url.searchParams.get("action")) {
+            case "delete-rows": {
+                const form = await request.formData();
+                const table = form.get("table") as string;
+                const ids = (form.get("ids") as string).split(",");
+                for (const id of ids) {
+                    await db.query(`DELETE FROM ${table} WHERE id = ${id}`);
+                }
+                return null;
             }
-            return null;
         }
-    }
-    throw json({ error: "Bad request" }, { status: 400 });
+        throw json({ error: "Bad request" }, { status: 400 });
+    });
 };
 //     const url = new URL(request.url);
 //     // const successPath = url.pathname;

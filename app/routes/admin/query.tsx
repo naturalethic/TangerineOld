@@ -1,58 +1,46 @@
-import type { ActionFunction, LoaderFunction } from "@remix-run/node";
-import { json } from "@remix-run/node";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
-import { makeDomainFunction } from "domain-functions";
 import { useState } from "react";
 import { JSONTree } from "react-json-tree";
-import { formAction } from "remix-forms";
 import { z } from "zod";
-import { withDb } from "~/lib/database.server";
+import { actionFunction, loaderFunction } from "~/lib/loader";
 import { Query } from "~/lib/types";
 
 type LoaderData = { queries: Query[] };
 
-export const loader: LoaderFunction = async () => {
-    return withDb(async (db) => {
-        const queries = await db.query(
-            "SELECT * FROM _query ORDER BY created DESC",
-        );
-        return json({ queries });
-    });
-};
+export const loader = () =>
+    loaderFunction(async ({ db }) => ({
+        queries: await db.query("SELECT * FROM _query ORDER BY created DESC"),
+    }))();
 
 type QueryInput = z.infer<typeof QueryInput>;
 const QueryInput = z.object({
     statement: z.string(),
 });
 
-export const action: ActionFunction = async ({ request }) =>
-    formAction({
-        request,
-        schema: QueryInput,
-        mutation: makeDomainFunction(QueryInput)(async ({ statement }) => {
-            return withDb(async (db) => {
-                try {
-                    const result = await db.query(statement);
-                    const extant = await db.queryFirst<Query>(
-                        "SELECT * FROM _query WHERE statement = $statement",
-                        { statement },
-                    );
-                    if (extant) {
-                        extant.created = new Date().toISOString();
-                        await db.change(extant);
-                    } else {
-                        await db.create("_query", {
-                            created: new Date().toISOString(),
-                            statement,
-                        });
-                    }
-                    return result;
-                } catch (error: any) {
-                    return JSON.parse(error.message);
-                }
-            });
-        }),
-    });
+export const action = actionFunction(
+    QueryInput,
+    async ({ statement }, { db }) => {
+        try {
+            const result = await db.query(statement);
+            const extant = await db.queryFirst<Query>(
+                "SELECT * FROM _query WHERE statement = $statement",
+                { statement },
+            );
+            if (extant) {
+                extant.created = new Date().toISOString();
+                await db.change(extant);
+            } else {
+                await db.create("_query", {
+                    created: new Date().toISOString(),
+                    statement,
+                });
+            }
+            return result;
+        } catch (error: any) {
+            return JSON.parse(error.message);
+        }
+    },
+);
 
 export default function () {
     const { queries } = useLoaderData<LoaderData>();

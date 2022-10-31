@@ -1,97 +1,98 @@
 import Surreal from "surrealdb.js";
+import { packId } from "./helper";
 import type { Identified } from "./types";
 
-class Database {
-    namespace: string;
-    database: string;
+// class Database {
+//     namespace: string;
+//     database: string;
 
-    constructor(namespace: string = "test", database: string = "test") {
-        this.namespace = namespace;
-        this.database = database;
-    }
+//     constructor(namespace: string = "test", database: string = "test") {
+//         this.namespace = namespace;
+//         this.database = database;
+//     }
 
-    async call(
-        method: string,
-        path: string,
-        body: object | string | null = null,
-    ) {
-        const result = await fetch(`${process.env.DATABASE_ENDPOINT!}${path}`, {
-            method,
-            headers: {
-                Authorization: `Basic ${btoa("root:root")}`,
-                Accept: "application/json",
-                NS: this.namespace,
-                DB: this.database,
-            },
-            ...(body && {
-                body: typeof body === "object" ? JSON.stringify(body) : body,
-            }),
-        });
-        if (result.status === 200) {
-            return (await result.json())[0].result;
-        }
-        throw new Error(await result.text());
-    }
+//     async call(
+//         method: string,
+//         path: string,
+//         body: object | string | null = null,
+//     ) {
+//         const result = await fetch(`${process.env.DATABASE_ENDPOINT!}${path}`, {
+//             method,
+//             headers: {
+//                 Authorization: `Basic ${btoa("root:root")}`,
+//                 Accept: "application/json",
+//                 NS: this.namespace,
+//                 DB: this.database,
+//             },
+//             ...(body && {
+//                 body: typeof body === "object" ? JSON.stringify(body) : body,
+//             }),
+//         });
+//         if (result.status === 200) {
+//             return (await result.json())[0].result;
+//         }
+//         throw new Error(await result.text());
+//     }
 
-    async query(
-        statement: string,
-        first = false,
-    ): Promise<Record<string, any>> {
-        const result = await this.call("post", "/sql", statement);
-        if (first) {
-            return result[0];
-        }
-        return result;
-    }
+//     async query(
+//         statement: string,
+//         first = false,
+//     ): Promise<Record<string, any>> {
+//         const result = await this.call("post", "/sql", statement);
+//         if (first) {
+//             return result[0];
+//         }
+//         return result;
+//     }
 
-    async tables(): Promise<string[]> {
-        const result = await this.query("info for database");
-        return Object.keys(result.tb);
-    }
+//     async tables(): Promise<string[]> {
+//         const result = await this.query("info for database");
+//         return Object.keys(result.tb);
+//     }
 
-    async create<T extends Identified>(
-        table: string,
-        record: Record<string, unknown> = {},
-    ): Promise<T> {
-        return (await this.call("post", `/key/${table}`, record))[0] as T;
-    }
+//     async create<T extends Identified>(
+//         table: string,
+//         record: Record<string, unknown> = {},
+//     ): Promise<T> {
+//         return (await this.call("post", `/key/${table}`, record))[0] as T;
+//     }
 
-    async update<T extends Identified>(record: T): Promise<T> {
-        const [table, id] = record.id.split(":");
-        return (await this.call("put", `/key/${table}/${id}`, record)) as T;
-    }
+//     async update<T extends Identified>(record: T): Promise<T> {
+//         const [table, id] = record.id.split(":");
+//         return (await this.call("put", `/key/${table}/${id}`, record)) as T;
+//     }
 
-    async delete(table: string, id: string | number): Promise<void> {
-        await this.call("delete", `/key/${table}/${id}`);
-    }
+//     async delete(table: string, id: string | number): Promise<void> {
+//         await this.call("delete", `/key/${table}/${id}`);
+//     }
 
-    async select<T extends Identified>(table: string): Promise<T[]>;
-    async select<T extends Identified>(
-        table: string,
-        id?: string | number,
-    ): Promise<T>;
-    async select<T extends Identified>(
-        table: string,
-        id?: string | number,
-    ): Promise<T[] | T> {
-        if (id) {
-            return (await this.call("get", `/key/${table}/${id}`))[0] as T;
-        }
-        return (await this.call("get", `/key/${table}`)) as T[];
-    }
+//     async select<T extends Identified>(table: string): Promise<T[]>;
+//     async select<T extends Identified>(
+//         table: string,
+//         id?: string | number,
+//     ): Promise<T>;
+//     async select<T extends Identified>(
+//         table: string,
+//         id?: string | number,
+//     ): Promise<T[] | T> {
+//         if (id) {
+//             return (await this.call("get", `/key/${table}/${id}`))[0] as T;
+//         }
+//         return (await this.call("get", `/key/${table}`)) as T[];
+//     }
 
-    async first<T extends Identified>(table: string): Promise<T | null> {
-        let records = await this.select(table);
-        if (records.length === 0) {
-            return null;
-        }
-        return records[0] as T;
-    }
-}
+//     async first<T extends Identified>(table: string): Promise<T | null> {
+//         let records = await this.select(table);
+//         if (records.length === 0) {
+//             return null;
+//         }
+//         return records[0] as T;
+//     }
+// }
 
-export const db = new Database();
+// export const db = new Database();
 
-class Connection {
+export class Connection {
     namespace: string;
     database: string;
     acquired: boolean;
@@ -130,16 +131,19 @@ class Connection {
         return (await this.query<T>(query, vars))[0];
     }
 
-    async select<T>(thing: string): Promise<T[]> {
-        return this.db.select(thing);
-    }
-
-    async selectFirst<T>(thing: string): Promise<T> {
-        return (await this.select<T>(thing))[0];
+    async select<T>(thing: string): Promise<T[]>;
+    async select<T>(table: string, id: string): Promise<T>;
+    async select<T>(thing_or_table: string, id?: string): Promise<T[] | T> {
+        const result = id
+            ? await this.db.select(packId(thing_or_table, id))
+            : await this.db.select(thing_or_table);
+        if (id || thing_or_table.includes(":")) {
+            return result[0] as T;
+        }
+        return result as T[];
     }
 
     async change<T extends Identified>(record: T) {
-        console.log(record);
         this.db.change(record.id, record);
     }
 
@@ -148,6 +152,10 @@ class Connection {
         record: Record<string, unknown> = {},
     ) {
         return this.db.create(table, record);
+    }
+
+    async delete(table: string, id: string) {
+        await this.db.delete(packId(table, id));
     }
 }
 
@@ -175,7 +183,7 @@ class Pool {
             if (this.connections.length < this.max) {
                 connection = new Connection();
                 connection.acquired = true;
-                this.connections.push(new Connection());
+                this.connections.push(connection);
                 await connection.connect();
             }
         }
@@ -196,11 +204,17 @@ class Pool {
     }
 }
 
-const pool = new Pool(10);
+declare global {
+    var pool: Pool;
+}
 
-export async function withDb(
+if (typeof pool === "undefined") {
+    pool = new Pool(10);
+}
+
+export async function withDb<T>(
     fn: (db: Connection) => Promise<any>,
-): Promise<void> {
+): Promise<T> {
     const db = await pool.acquire();
     try {
         return await fn(db);
@@ -208,37 +222,3 @@ export async function withDb(
         await pool.release(db);
     }
 }
-
-/**
- * Attempted higher order function approach to automatic connection closing.
- * This doesn't work because it produces a side effect in the client bundle.
- */
-
-// import type {
-//     AppData,
-//     DataFunctionArgs,
-//     LoaderFunction,
-// } from "@remix-run/node";
-
-// export interface ConnectedDataFunctionArgs extends DataFunctionArgs {
-//     db: Connection;
-// }
-
-// export interface ConnectedLoaderFunction {
-//     (args: ConnectedDataFunctionArgs):
-//         | Promise<Response>
-//         | Response
-//         | Promise<AppData>
-//         | AppData;
-// }
-
-// export function dbLoader(fn: ConnectedLoaderFunction): LoaderFunction {
-//     return async function (args: DataFunctionArgs) {
-//         const db = await pool.acquire();
-//         try {
-//             return await fn({ ...args, db });
-//         } finally {
-//             await pool.release(db);
-//         }
-//     };
-// }

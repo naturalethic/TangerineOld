@@ -1,15 +1,12 @@
-import { json, LoaderFunction } from "@remix-run/node";
-import { Link, Outlet, useLoaderData, useLocation } from "@remix-run/react";
-import { getSession } from "~/lib/session.server";
-import { Identity } from "~/lib/types";
+import { LoaderFunction } from "@remix-run/node";
+import { Link, useLoaderData } from "@remix-run/react";
+import { loaderFunction } from "~/lib/loader";
 
-export const loader: LoaderFunction = async ({ request }) => {
-    const session = await getSession(request);
-    return await session.identity();
-};
+export const loader: LoaderFunction = (args) =>
+    loaderFunction(async ({ identity }) => ({ identity }))(args);
 
 export default function () {
-    const identity = useLoaderData<Identity>();
+    const { identity } = useLoaderData();
 
     return (
         <div className="flex flex-col items-center justify-center h-screen space-y-4 bg-zinc-700">

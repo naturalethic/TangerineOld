@@ -1,5 +1,4 @@
 import {
-    json,
     LinksFunction,
     LoaderFunction,
     MetaFunction,
@@ -16,7 +15,7 @@ import {
     useLoaderData,
 } from "@remix-run/react";
 import { IoMdLogOut } from "react-icons/io";
-import { getSession } from "./lib/session.server";
+import { loaderFunction } from "./lib/loader";
 
 export const links: LinksFunction = () => {
     return [{ rel: "stylesheet", href: "/style" }];
@@ -44,20 +43,31 @@ export function ErrorBoundary({ error }: { error: Error }) {
     );
 }
 
-export const loader: LoaderFunction = async ({ request }) => {
-    const url = new URL(request.url);
-    if (!["/login", "/signup"].includes(url.pathname)) {
-        const session = await getSession(request);
-        if (!session.get("identity")) {
-            return redirect("/login", { headers: await session.commit() });
+export const loader: LoaderFunction = (args) =>
+    loaderFunction(async ({ session, identity, url }) => {
+        if (["/login", "/signup"].includes(url.pathname)) {
+            return {};
         }
-        return await session.identity();
-    }
-    return null;
-};
+        if (identity) {
+            return { identity };
+        }
+        throw redirect("/login", { headers: await session.commit() });
+    })(args);
+
+// export const loader: LoaderFunction = async ({ request }) => {
+//     const url = new URL(request.url);
+//     if (!["/login", "/signup"].includes(url.pathname)) {
+//         const session = await getSession(request);
+//         if (!session.get("identity")) {
+//             return redirect("/login", { headers: await session.commit() });
+//         }
+//         return await session.identity();
+//     }
+//     return null;
+// };
 
 export default function () {
-    const identity = useLoaderData();
+    const { identity } = useLoaderData();
 
     return (
         <html lang="en">

@@ -1,33 +1,48 @@
-import type { ActionFunction, LoaderFunction } from "@remix-run/node";
-import { json } from "@remix-run/node";
+import {
+    ActionFunction,
+    json,
+    LoaderFunction,
+    redirect,
+} from "@remix-run/node";
 import { Link, Outlet, useLoaderData, useParams } from "@remix-run/react";
 import { makeDomainFunction } from "domain-functions";
 import { Form, formAction } from "remix-forms";
 import { EntityList } from "~/components/admin";
 import { Modal } from "~/kit";
-import { db } from "~/lib/database.server";
+// import { db } from "~/lib/database.server";
 import { unpackId } from "~/lib/helper";
-import model from "~/lib/model";
+import { actionFunction, loaderFunction } from "~/lib/loader";
+// import model from "~/lib/model";
 import { Tenant } from "~/lib/types";
 
 type LoaderData = { tenants: Tenant[] };
 
-export const loader: LoaderFunction = async ({ request }) => {
-    const tenants = await model.tenant.all();
-    return json({ tenants });
-};
+export const loader = () =>
+    loaderFunction(async ({ db }) => ({
+        tenants: await db.query("SELECT * FROM _tenant ORDER BY name"),
+    }))();
 
-export const action: ActionFunction = async ({ request }) =>
-    formAction({
-        request,
-        schema: Tenant,
-        mutation: makeDomainFunction(Tenant)(async (tenant) => {
-            return await db.create("_tenant", tenant);
-        }),
-        successPath: (tenant: Tenant) => {
-            return `/admin/tenant/${unpackId(tenant)}`;
-        },
-    });
+// export const loader: LoaderFunction = async ({ request }) => {
+//     const tenants = await model.tenant.all();
+//     return json({ tenants });
+// };
+
+export const action = actionFunction(Tenant, async (tenant, { db }) => {
+    await db.create("_tenant", tenant);
+    throw redirect(`/admin/tenant/${unpackId(tenant)}`);
+});
+
+// export const action: ActionFunction = async ({ request }) =>
+//     formAction({
+//         request,
+//         schema: Tenant,
+//         mutation: makeDomainFunction(Tenant)(async (tenant) => {
+//             return await db.create("_tenant", tenant);
+//         }),
+//         successPath: (tenant: Tenant) => {
+//             return `/admin/tenant/${unpackId(tenant)}`;
+//         },
+//     });
 
 export default function () {
     const { tenants } = useLoaderData<LoaderData>();

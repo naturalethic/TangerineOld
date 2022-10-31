@@ -1,34 +1,43 @@
-import type { LoaderFunction } from "@remix-run/node";
-import { ActionFunction, json } from "@remix-run/node";
+import {
+    ActionFunction,
+    json,
+    LoaderFunction,
+    redirect,
+} from "@remix-run/node";
 import { Link, Outlet, useLoaderData, useParams } from "@remix-run/react";
 import { makeDomainFunction } from "domain-functions";
-import { capitalize, pluralize } from "inflection";
 import { Form, formAction } from "remix-forms";
 import { EntityList } from "~/components/admin";
 import { Modal } from "~/kit";
-import { db } from "~/lib/database.server";
 import { unpackId } from "~/lib/helper";
-import model from "~/lib/model";
+import { actionFunction, loaderFunction } from "~/lib/loader";
 import { Collection } from "~/lib/types";
 
 type LoaderData = { collections: Collection[] };
 
-export const loader: LoaderFunction = async ({ request }) => {
-    const collections = await model.collection.all();
-    return json({ collections });
-};
+export const loader = () =>
+    loaderFunction(async ({ db }) => ({
+        collections: await db.query(
+            "SELECT * FROM _collection ORDER BY name ASC",
+        ),
+    }))();
 
-export const action: ActionFunction = async ({ request }) =>
-    formAction({
-        request,
-        schema: Collection,
-        mutation: makeDomainFunction(Collection)(async (collection) => {
-            return await db.create("_collection", collection);
-        }),
-        successPath: (collection: Collection) => {
-            return `/admin/collection/${unpackId(collection)}`;
-        },
-    });
+export const action = actionFunction(Collection, async (collection, { db }) => {
+    await db.create("_collection", collection);
+    throw redirect(`/admin/collection/${unpackId(collection)}`);
+});
+
+// export const action: ActionFunction = async ({ request }) =>
+//     formAction({
+//         request,
+//         schema: Collection,
+//         mutation: makeDomainFunction(Collection)(async (collection) => {
+//             return await db.create("_collection", collection);
+//         }),
+//         successPath: (collection: Collection) => {
+//             return `/admin/collection/${unpackId(collection)}`;
+//         },
+//     });
 
 export default function () {
     const { collections } = useLoaderData<LoaderData>();

@@ -1,9 +1,9 @@
 import {
     createSessionStorage,
-    redirect,
     Session as RemixSession,
+    SessionStorage,
 } from "@remix-run/node";
-import { db } from "./database.server";
+import { withDb } from "./database.server";
 import { unpackId } from "./helper";
 import { Identity, Session as SessionBase } from "./types";
 
@@ -11,35 +11,47 @@ function createDatabaseSessionStorage() {
     return createSessionStorage({
         cookie: { name: "session", secrets: [process.env.COOKIE_SECRET!] },
         async createData(data, expires) {
-            console.log("createData", data, expires);
-            const session = await db.create<SessionBase>("_session", {
-                data,
-                expires,
+            return await withDb(async (db) => {
+                const session = await db.create<SessionBase>("_session", {
+                    data,
+                    expires,
+                });
+                return unpackId(session.id);
             });
-            return unpackId(session.id);
         },
         async readData(id) {
-            return (await db.select<SessionBase>("_session", id))?.data;
+            return withDb(async (db) => {
+                return (await db.select<SessionBase>("_session", id))?.data;
+            });
         },
         async updateData(id, data, expires) {
-            console.log("updateData", id, data, expires);
-            const session = await db.select<SessionBase>("_session", id);
-            if (session) {
-                session.data = data;
-                session.expires = expires;
-                await db.update(session);
-            }
+            await withDb(async (db) => {
+                const session = await db.select<SessionBase>("_session", id);
+                console.log("UPDATING SESSION", session);
+                if (session) {
+                    session.data = data;
+                    session.expires = expires;
+                    await db.change(session);
+                }
+            });
         },
         async deleteData(id) {
-            console.log("deleteData", id);
-            await db.delete("_session", id);
+            await withDb(async (db) => {
+                await db.delete("_session", id);
+            });
         },
     });
 }
 
-const storage = createDatabaseSessionStorage();
+declare global {
+    var storage: SessionStorage;
+}
 
-class Session {
+if (typeof storage === "undefined") {
+    storage = createDatabaseSessionStorage();
+}
+
+export class Session {
     session: RemixSession;
 
     constructor(session: RemixSession) {
@@ -83,22 +95,10 @@ class Session {
     async identity(): Promise<Identity | null> {
         const id = this.session.get("identity");
         if (id) {
-            return await db.select<Identity>("_identity", id);
+            return withDb(async (db) => {
+                return await db.select<Identity>("_identity", id);
+            });
         }
         return null;
     }
 }
-
-export const getSession = async (request: Request): Promise<Session> => {
-    return await Session.get(request);
-};
-
-export const requireIdentifiedSession = async (
-    request: Request,
-): Promise<Session> => {
-    const session = await getSession(request);
-    if (!session.has("identity")) {
-        throw redirect("/login");
-    }
-    return session;
-};
