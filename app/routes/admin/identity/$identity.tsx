@@ -1,38 +1,28 @@
-import type { LoaderFunction } from "@remix-run/node";
-import { ActionFunction, json } from "@remix-run/node";
+import { ActionFunction, LoaderFunction } from "@remix-run/node";
 import { useActionData, useLoaderData } from "@remix-run/react";
-import { makeDomainFunction } from "domain-functions";
 import { useRef } from "react";
-import { Form, formAction } from "remix-forms";
+import { Form } from "remix-forms";
 import { z } from "zod";
 import { Flash } from "~/kit/flash";
 import { actionFunction, loaderFunction } from "~/lib/loader";
-// import { db } from "~/lib/database.server";
-// import model from "~/lib/model";
 import { Identity, Tenant } from "~/lib/types";
 
 const Params = z.object({ identity: z.string() });
 
 type LoaderData = { identity: Identity; tenants: Tenant[] };
 
-export const loader: LoaderFunction = ({ params }) =>
-    loaderFunction(async ({ db }) => {
-        const { identity: id } = Params.parse(params);
-        const identity = await db.select<Identity>("_identity", id);
+export const loader: LoaderFunction = (args) =>
+    loaderFunction(async ({ db, params }) => {
+        const identity = await db.select<Identity>(
+            "_identity",
+            Params.parse(params).identity,
+        );
         identity.roles ??= {};
         return {
             identity,
             tenants: await db.query("SELECT * FROM _tenant ORDER BY name"),
         };
-    })();
-
-//     export const loader: LoaderFunction = async ({ params }) => {
-//     const { identity: id } = Params.parse(params);
-//     const identity = await db.select<Identity>("_identity", id);
-//     identity.roles ??= {};
-//     const tenants = await db.query("SELECT * FROM _tenant ORDER BY name");
-//     return json({ identity, tenants });
-// };
+    })(args);
 
 type IdentityInput = z.infer<typeof IdentityInput>;
 const IdentityInput = z.object({
@@ -43,46 +33,27 @@ const IdentityInput = z.object({
     roles: z.string(),
 });
 
-export const action = actionFunction(IdentityInput, async (input, { db }) => {
-    const identity: Partial<Identity> = {
-        ...input,
-        roles: JSON.parse(input.roles),
-    };
-    if (identity.password) {
-        identity.password = await db.queryFirst(
-            `SELECT * FROM crypto::argon2::generate('${identity.password}')`,
-        );
-    } else {
-        delete identity.password;
-    }
-    await db.change(identity as Identity);
-    return {
-        flash: "Record saved",
-    };
-});
-
-// export const actionx: ActionFunction = async ({ request }) =>
-//     formAction({
-//         request,
-//         schema: IdentityInput,
-//         mutation: makeDomainFunction(IdentityInput)(async (input) => {
-//             const identity: Partial<Identity> = {
-//                 ...input,
-//                 roles: JSON.parse(input.roles),
-//             };
-//             if (identity.password) {
-//                 identity.password = (
-//                     await db.query(
-//                         `SELECT * FROM crypto::argon2::generate('${identity.password}')`,
-//                     )
-//                 )[0];
-//             } else {
-//                 delete identity.password;
-//             }
-//             await db.update(identity as Identity);
-//             return { flash: "Record saved" };
-//         }),
-//     });
+export const action: ActionFunction = (args) =>
+    actionFunction(IdentityInput, async (input, { db }) => {
+        const identity: Partial<Identity> = {
+            ...input,
+            roles: JSON.parse(input.roles),
+        };
+        if (identity.password) {
+            identity.password = await db.queryFirst(`
+                SELECT * FROM crypto::argon2::generate('${identity.password}')
+            `);
+        } else {
+            delete identity.password;
+        }
+        // XXX: `change` is preserving roles we want to remove.  Update would wipe out the password if not give.
+        //      This relationship design sucks anyway.
+        await db.change(identity as Identity);
+        return {
+            // XXX: Look into session.flash
+            flash: "Record saved",
+        };
+    })(args);
 
 export default function () {
     const { identity, tenants } = useLoaderData<LoaderData>();

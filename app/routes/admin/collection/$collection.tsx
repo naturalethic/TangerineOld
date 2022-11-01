@@ -1,5 +1,4 @@
-import type { LoaderFunction } from "@remix-run/node";
-import { ActionFunction, json } from "@remix-run/node";
+import { ActionFunction, json, LoaderFunction } from "@remix-run/node";
 import { Link, useLoaderData } from "@remix-run/react";
 import { makeDomainFunction } from "domain-functions";
 import { Form, formAction } from "remix-forms";
@@ -8,16 +7,14 @@ import { Modal } from "~/kit";
 import { withDb } from "~/lib/database.server";
 import { packId } from "~/lib/helper";
 import { loaderFunction } from "~/lib/loader";
-// import { db } from "~/lib/database.server";
-// import model from "~/lib/model";
 import { Collection, Field } from "~/lib/types";
 
 const Params = z.object({ collection: z.string() });
 
 type LoaderData = { collection: Collection; fields: Field[] };
 
-export const loader: LoaderFunction = ({ params }) =>
-    loaderFunction(async ({ db }) => {
+export const loader: LoaderFunction = (args) =>
+    loaderFunction(async ({ db, params }) => {
         const id = packId("_collection", Params.parse(params).collection);
         return {
             collection: await db.select(id),
@@ -26,19 +23,12 @@ export const loader: LoaderFunction = ({ params }) =>
                 { id },
             ),
         };
-    })();
-
-// export const loader: LoaderFunction = async ({ params }) => {
-//     const { collection: id } = Params.parse(params);
-//     const collection = await model.collection.get(id);
-//     const fields = await model.field.all(id);
-//     return json({ collection, fields });
-// };
+    })(args);
 
 export const action: ActionFunction = async ({ request }) => {
     const url = new URL(request.url);
     const successPath = url.pathname;
-    withDb(async (db) => {
+    return await withDb(async (db) => {
         switch (url.searchParams.get("action")) {
             case "update-collection":
                 return formAction({

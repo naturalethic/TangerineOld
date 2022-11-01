@@ -1,12 +1,6 @@
-import {
-    ActionFunction,
-    json,
-    LoaderFunction,
-    redirect,
-} from "@remix-run/node";
+import { ActionFunction, LoaderFunction, redirect } from "@remix-run/node";
 import { Link, Outlet, useLoaderData, useParams } from "@remix-run/react";
-import { makeDomainFunction } from "domain-functions";
-import { Form, formAction } from "remix-forms";
+import { Form } from "remix-forms";
 import { EntityList } from "~/components/admin";
 import { Modal } from "~/kit";
 import { unpackId } from "~/lib/helper";
@@ -22,26 +16,14 @@ export const loader: LoaderFunction = (args) =>
         ),
     }))(args);
 
-export const action = actionFunction(Collection, async (collection, { db }) => {
-    await db.create("_collection", collection);
-    throw redirect(`/admin/collection/${unpackId(collection)}`);
-});
-
-// export const action: ActionFunction = async ({ request }) =>
-//     formAction({
-//         request,
-//         schema: Collection,
-//         mutation: makeDomainFunction(Collection)(async (collection) => {
-//             return await db.create("_collection", collection);
-//         }),
-//         successPath: (collection: Collection) => {
-//             return `/admin/collection/${unpackId(collection)}`;
-//         },
-//     });
+export const action: ActionFunction = (args) =>
+    actionFunction(Collection, async (input, { db }) => {
+        const collection = await db.create("_collection", input);
+        return redirect(`/admin/collection/${unpackId(collection)}`);
+    })(args);
 
 export default function () {
     const { collections } = useLoaderData<LoaderData>();
-
     const params = useParams();
 
     return (
