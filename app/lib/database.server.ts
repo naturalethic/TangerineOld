@@ -1,91 +1,142 @@
+import Surreal from "surrealdb.js";
+import { packId } from "./helper";
 import type { Identified } from "./types";
 
-export class Database {
+export class Connection {
     namespace: string;
     database: string;
+    acquired: boolean;
+    db: Surreal;
 
     constructor(namespace: string = "test", database: string = "test") {
         this.namespace = namespace;
         this.database = database;
+        this.acquired = false;
+        this.db = new Surreal(`${process.env.DATABASE_ENDPOINT!}/rpc`);
     }
 
-    async call(
-        method: string,
-        path: string,
-        body: object | string | null = null,
-    ) {
-        const result = await fetch(`${process.env.DATABASE_ENDPOINT!}${path}`, {
-            method,
-            headers: {
-                Authorization: `Basic ${btoa("root:root")}`,
-                Accept: "application/json",
-                NS: this.namespace,
-                DB: this.database,
-            },
-            ...(body && {
-                body: typeof body === "object" ? JSON.stringify(body) : body,
-            }),
+    async connect() {
+        await this.db.signin({
+            user: "root",
+            pass: "root",
         });
-        if (result.status === 200) {
-            return (await result.json())[0].result;
-        }
-        throw new Error(await result.text());
+        await this.db.use(this.namespace, this.database);
     }
 
-    async query(
-        statement: string,
-        first = false,
-    ): Promise<Record<string, any>> {
-        const result = await this.call("post", "/sql", statement);
-        if (first) {
-            return result[0];
+    async query<T>(
+        query: string,
+        vars?: Record<string, unknown>,
+    ): Promise<T[]> {
+        const result = await this.db.query(query, vars);
+        if (result.length) {
+            return result[result.length - 1].result as T[];
         }
-        return result;
+        return [];
     }
 
-    async tables(): Promise<string[]> {
-        const result = await this.query("info for database");
-        return Object.keys(result.tb);
+    async queryFirst<T>(
+        query: string,
+        vars?: Record<string, unknown>,
+    ): Promise<T> {
+        return (await this.query<T>(query, vars))[0];
+    }
+
+    async select<T>(thing: string): Promise<T[]>;
+    async select<T>(table: string, id: string): Promise<T>;
+    async select<T>(thing_or_table: string, id?: string): Promise<T[] | T> {
+        const result = id
+            ? await this.db.select(packId(thing_or_table, id))
+            : await this.db.select(thing_or_table);
+        if (id || thing_or_table.includes(":")) {
+            return result[0] as T;
+        }
+        return result as T[];
+    }
+
+    async change<T extends Identified>(record: T) {
+        this.db.change(record.id, record);
+    }
+
+    async update<T extends Identified>(record: T) {
+        this.db.update(record.id, record);
     }
 
     async create<T extends Identified>(
         table: string,
         record: Record<string, unknown> = {},
-    ): Promise<T> {
-        return (await this.call("post", `/key/${table}`, record))[0] as T;
+    ) {
+        return this.db.create(table, record);
     }
 
-    async update<T extends Identified>(record: T): Promise<T> {
-        const [table, id] = record.id.split(":");
-        return (await this.call("put", `/key/${table}/${id}`, record)) as T;
-    }
-
-    async delete(table: string, id: string | number): Promise<void> {
-        await this.call("delete", `/key/${table}/${id}`);
-    }
-
-    async select<T extends Identified>(table: string): Promise<T[]>;
-    async select<T extends Identified>(
-        table: string,
-        id?: string | number,
-    ): Promise<T>;
-    async select<T extends Identified>(
-        table: string,
-        id?: string | number,
-    ): Promise<T[] | T> {
-        if (id) {
-            return (await this.call("get", `/key/${table}/${id}`))[0] as T;
-        }
-        return (await this.call("get", `/key/${table}`)) as T[];
-    }
-
-    async first<T extends Identified>(table: string): Promise<T | null> {
-        let records = await this.select(table);
-        if (records.length === 0) {
-            return null;
-        }
-        return records[0] as T;
+    async delete(thing: string): Promise<void>;
+    async delete(table: string, id: string): Promise<void>;
+    async delete(thing_or_table: string, id?: string): Promise<void> {
+        const result = id
+            ? await this.db.delete(packId(thing_or_table, id))
+            : await this.db.delete(thing_or_table);
     }
 }
 
-export const db = new Database();
+class Pool {
+    max: number;
+    connections: Connection[];
+    waitlist: ((connection: Connection) => void)[];
+
+    constructor(max: number) {
+        this.max = max;
+        this.connections = [];
+        this.waitlist = [];
+    }
+
+    async acquire(): Promise<Connection> {
+        let connection: Connection | null = null;
+        for (let i = 0; i < this.connections.length; i++) {
+            if (!this.connections[i].acquired) {
+                connection = this.connections[i];
+                connection.acquired = true;
+                break;
+            }
+        }
+        if (!connection) {
+            if (this.connections.length < this.max) {
+                connection = new Connection();
+                connection.acquired = true;
+                this.connections.push(connection);
+                await connection.connect();
+            }
+        }
+        if (connection) {
+            return connection;
+        }
+        return new Promise((resolve) => {
+            this.waitlist.push(resolve);
+        });
+    }
+
+    async release(connection: Connection) {
+        if (this.waitlist.length) {
+            this.waitlist.shift()!(connection);
+        } else {
+            connection.acquired = false;
+        }
+    }
+}
+
+declare global {
+    var pool: Pool;
+}
+
+if (typeof pool === "undefined") {
+    pool = new Pool(10);
+}
+
+export async function withDb<T>(
+    fn: (db: Connection) => Promise<any>,
+): Promise<T> {
+    const db = await pool.acquire();
+    try {
+        return await fn(db);
+    } finally {
+        await pool.release(db);
+    }
+}

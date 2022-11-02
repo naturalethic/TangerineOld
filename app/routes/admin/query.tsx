@@ -1,71 +1,51 @@
-import type { ActionFunction, LoaderFunction } from "@remix-run/node";
-import { json } from "@remix-run/node";
-import { useFetcher, useLoaderData, useSearchParams } from "@remix-run/react";
-import { useEffect, useRef, useState } from "react";
+import { LoaderFunction } from "@remix-run/node";
+import { Form, useActionData, useLoaderData } from "@remix-run/react";
+import { useState } from "react";
 import { JSONTree } from "react-json-tree";
 import { z } from "zod";
-import { db } from "~/lib/database.server";
-import { packId, unpackId } from "~/lib/helper";
-import model from "~/lib/model";
+import { actionFunction, loaderFunction } from "~/lib/loader";
 import { Query } from "~/lib/types";
 
 type LoaderData = { queries: Query[] };
 
-export const loader: LoaderFunction = async () => {
-    const queries = await model.query.all();
-    return json({ queries });
-};
+export const loader: LoaderFunction = (args) =>
+    loaderFunction(async ({ db }) => ({
+        queries: await db.query("SELECT * FROM _query ORDER BY created DESC"),
+    }))(args);
 
-export const action: ActionFunction = async ({ request }) => {
-    const url = new URL(request.url);
-    switch (url.searchParams.get("action")) {
-        case "execute": {
-            const form = await request.formData();
-            const statement = form.get("statement") as string;
-            try {
-                const result = await db.query(statement);
-                const extant = (await db.query(
-                    `SELECT * FROM _query WHERE statement = '${statement}'`,
-                    true,
-                )) as Query;
-                if (extant) {
-                    extant.created = new Date().toISOString();
-                    await db.update(extant);
-                } else {
-                    await db.create("_query", {
-                        created: new Date().toISOString(),
-                        statement,
-                    });
-                }
-                return result;
-            } catch (error: any) {
-                return JSON.parse(error.message);
+const QueryInput = z.object({
+    statement: z.string(),
+});
+
+export const action = actionFunction(
+    QueryInput,
+    async ({ statement }, { db }) => {
+        try {
+            const result = await db.query(statement);
+            const extant = await db.queryFirst<Query>(
+                "SELECT * FROM _query WHERE statement = $statement",
+                { statement },
+            );
+            if (extant) {
+                extant.created = new Date().toISOString();
+                await db.change(extant);
+            } else {
+                await db.create("_query", {
+                    created: new Date().toISOString(),
+                    statement,
+                });
             }
+            return result;
+        } catch (error: any) {
+            return JSON.parse(error.message);
         }
-    }
-    throw json({ error: "Bad request" }, { status: 400 });
-};
+    },
+);
 
 export default function () {
-    const [search] = useSearchParams();
     const { queries } = useLoaderData<LoaderData>();
-    const [statement, setStatement] = useState<string>(
-        search.has("id")
-            ? queries.find((q) => q.id === packId("_query", search.get("id")!))!
-                  .statement
-            : "",
-    );
-    const fetcher = useFetcher();
-
-    const execute = () => {
-        fetcher.submit(
-            { statement },
-            {
-                method: "post",
-                action: "/admin/query?action=execute",
-            },
-        );
-    };
+    const data = useActionData();
+    const [statement, setStatement] = useState<string>("");
 
     return (
         <div className="flex flex-row py-2 select-none h-full">
@@ -84,26 +64,26 @@ export default function () {
             </div>
             <div className="bg-zinc-600 w-px h-full" />
             <div className="flex-1 mx-2 flex flex-col space-y-3">
-                <div className="flex flex-col h-1/2 relative">
+                <Form method="post" className="flex flex-col h-1/2 relative">
                     <textarea
                         className="bg-zinc-900 rounded py-1 px-2 h-full w-full resize-none"
                         value={statement}
+                        name="statement"
                         onChange={(e) => setStatement(e.target.value)}
                     />
                     <div className="flex flex-row justify-end text-sm mt-2 absolute right-2 bottom-2">
                         <button
                             className="rounded bg-orange-600 text-zinc-200 px-2 py-px font-bold disabled:bg-zinc-400"
-                            onClick={execute}
                             disabled={statement.length === 0}
                         >
                             Execute
                         </button>
                     </div>
-                </div>
+                </Form>
                 <div className="rounded py-1 px-2 bg-zinc-900 h-1/2 overflow-auto scrollbar-thin scrollbar-thumb-orange-900">
-                    {fetcher.data && (
+                    {data && (
                         <JSONTree
-                            data={fetcher.data}
+                            data={data}
                             shouldExpandNode={() => true}
                             theme={theme}
                             invertTheme={false}

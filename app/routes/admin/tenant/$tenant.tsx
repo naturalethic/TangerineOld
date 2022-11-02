@@ -12,9 +12,8 @@ import { capitalize, pluralize } from "inflection";
 import { useEffect, useRef, useState } from "react";
 import { MdDelete } from "react-icons/md";
 import { z } from "zod";
-import { db } from "~/lib/database";
 import { unpackId } from "~/lib/helper";
-import model from "~/lib/model";
+import { loaderFunction } from "~/lib/loader";
 import { Collection, Field, Tenant } from "~/lib/types";
 
 type LoaderData = {
@@ -24,12 +23,11 @@ type LoaderData = {
 
 const Params = z.object({ tenant: z.string() });
 
-export const loader: LoaderFunction = async ({ params }) => {
-    const p = Params.parse(params);
-    const tenant = await model.tenant.get(p.tenant);
-    const collections = await model.collection.all();
-    return json<LoaderData>({ tenant, collections });
-};
+export const loader: LoaderFunction = (args) =>
+    loaderFunction(async ({ db, params }) => ({
+        tenant: await db.select("_tenant", Params.parse(params).tenant),
+        collections: await db.select("_collection"),
+    }))(args);
 
 // export const action: ActionFunction = async ({ request }) => {
 //     const form = await request.formData();

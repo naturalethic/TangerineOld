@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { MdDelete } from "react-icons/md";
 import { z } from "zod";
 import { db } from "~/lib/database.server";
+import { loaderFunction } from "~/lib/loader";
 import model from "~/lib/model";
 import { Collection, Field, Tenant } from "~/lib/types";
 
@@ -18,14 +19,23 @@ type LoaderData = {
 
 const Params = z.object({ tenant: z.string(), collection: z.string() });
 
-export const loader: LoaderFunction = async ({ params }) => {
-    const { tenant: tenantId, collection: collectionId } = Params.parse(params);
-    const tenant = await model.tenant.get(tenantId);
-    const collection = await model.tenant.get(collectionId);
-    // const records: Record<string, any>[] = await db.select(collection.name);
-    const records: Record<string, any>[] = [];
-    return json<LoaderData>({ tenant, collection, records });
-};
+export const loader: LoaderFunction = (args) =>
+    loaderFunction(async ({ params }) => {
+        // const { tenant: tenantId, collection: collectionId } = Params.parse(params);
+        //     const tenant = await model.tenant.get(tenantId);
+        //     const collection = await model.tenant.get(collectionId);
+        //     // const records: Record<string, any>[] = await db.select(collection.name);
+        //     const records: Record<string, any>[] = [];
+        //     return json<LoaderData>({ tenant, collection, records });
+    })(args);
+// export const loader: LoaderFunction = async ({ params }) => {
+//     const { tenant: tenantId, collection: collectionId } = Params.parse(params);
+//     const tenant = await model.tenant.get(tenantId);
+//     const collection = await model.tenant.get(collectionId);
+//     // const records: Record<string, any>[] = await db.select(collection.name);
+//     const records: Record<string, any>[] = [];
+//     return json<LoaderData>({ tenant, collection, records });
+// };
 
 // export const action: ActionFunction = async ({ request }) => {
 //     const form = await request.formData();
@@ -38,7 +48,7 @@ export const loader: LoaderFunction = async ({ params }) => {
 // };
 
 export default function () {
-    const { tenant, collection, records } = useLoaderData() as LoaderData;
+    // const { tenant, collection, records } = useLoaderData() as LoaderData;
     //     const [record, setRecord] = useState<TenantCollectionRecord | null>(
     //         new TenantCollectionRecord(tenant, collections[0]),
     //     );

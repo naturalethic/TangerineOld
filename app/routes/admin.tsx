@@ -1,16 +1,13 @@
 import { json, LoaderFunction } from "@remix-run/node";
 import { Link, Outlet, useLocation } from "@remix-run/react";
-import { getSession } from "~/lib/session.server";
-import { Identity } from "~/lib/types";
+import { loaderFunction } from "~/lib/loader";
 
-export const loader: LoaderFunction = async ({ request }) => {
-    const session = await getSession(request);
-    const identity = (await session.identity()) as Identity;
-    if (!identity.admin) {
-        throw json({ error: "Unauthorized" }, { status: 401 });
-    }
-    return null;
-};
+export const loader: LoaderFunction = (args) =>
+    loaderFunction(async ({ identity }) => {
+        if (!identity?.admin) {
+            return json({ error: "Unauthorized" }, { status: 401 });
+        }
+    })(args);
 
 export default function () {
     return (

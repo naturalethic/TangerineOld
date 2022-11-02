@@ -1,38 +1,29 @@
-import type { LoaderFunction } from "@remix-run/node";
-import { ActionFunction, json } from "@remix-run/node";
+import { ActionFunction, LoaderFunction, redirect } from "@remix-run/node";
 import { Link, Outlet, useLoaderData, useParams } from "@remix-run/react";
-import { makeDomainFunction } from "domain-functions";
-import { capitalize, pluralize } from "inflection";
-import { Form, formAction } from "remix-forms";
+import { Form } from "remix-forms";
 import { EntityList } from "~/components/admin";
 import { Modal } from "~/kit";
-import { db } from "~/lib/database.server";
 import { unpackId } from "~/lib/helper";
-import model from "~/lib/model";
+import { actionFunction, loaderFunction } from "~/lib/loader";
 import { Collection } from "~/lib/types";
 
 type LoaderData = { collections: Collection[] };
 
-export const loader: LoaderFunction = async ({ request }) => {
-    const collections = await model.collection.all();
-    return json({ collections });
-};
+export const loader: LoaderFunction = (args) =>
+    loaderFunction(async ({ db }) => ({
+        collections: await db.query(
+            "SELECT * FROM _collection ORDER BY name ASC",
+        ),
+    }))(args);
 
-export const action: ActionFunction = async ({ request }) =>
-    formAction({
-        request,
-        schema: Collection,
-        mutation: makeDomainFunction(Collection)(async (collection) => {
-            return await db.create("_collection", collection);
-        }),
-        successPath: (collection: Collection) => {
-            return `/admin/collection/${unpackId(collection)}`;
-        },
-    });
+export const action: ActionFunction = (args) =>
+    actionFunction(Collection, async (input, { db }) => {
+        const collection = await db.create("_collection", input);
+        return redirect(`/admin/collection/${unpackId(collection)}`);
+    })(args);
 
 export default function () {
     const { collections } = useLoaderData<LoaderData>();
-
     const params = useParams();
 
     return (

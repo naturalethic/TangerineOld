@@ -1,10 +1,10 @@
-import { ActionFunction, json, redirect } from "@remix-run/node";
-import { makeDomainFunction, toErrorWithMessage } from "domain-functions";
-import { Form, performMutation } from "remix-forms";
+import { ActionFunction, LoaderFunction, redirect } from "@remix-run/node";
+import { toErrorWithMessage } from "domain-functions";
+import { Form } from "remix-forms";
 import { z } from "zod";
-import { db } from "~/lib/database.server";
 import { unpackId } from "~/lib/helper";
-import { getSession } from "~/lib/session.server";
+import { actionFunction, loaderFunction } from "~/lib/loader";
+import { Identity } from "~/lib/types";
 
 type LoginForm = z.infer<typeof LoginForm>;
 const LoginForm = z.object({
@@ -12,29 +12,28 @@ const LoginForm = z.object({
     password: z.string(),
 });
 
-export const action: ActionFunction = async ({ request }) => {
-    const result = await performMutation({
-        request,
-        schema: LoginForm,
-        mutation: makeDomainFunction(LoginForm)(async (form) => {
-            const identity = await db.query(
-                `SELECT * FROM _identity WHERE username = '${form.username}' AND crypto::argon2::compare(password, '${form.password}')`,
-                true,
+export const loader: LoaderFunction = (args) =>
+    loaderFunction(async ({ identity }) => {
+        if (identity) {
+            throw redirect("/");
+        }
+    })(args);
+
+export const action: ActionFunction = (args) =>
+    actionFunction(
+        LoginForm,
+        async ({ username, password }, { db, session }) => {
+            const identity = await db.queryFirst<Identity>(
+                `SELECT * FROM _identity WHERE username = '${username}' AND crypto::argon2::compare(password, '${password}')`,
             );
             if (identity) {
-                const session = await getSession(request);
                 session.set("identity", unpackId(identity.id));
-                return session;
+                return redirect("/", { headers: await session.commit() });
             } else {
                 throw toErrorWithMessage("Invalid username or password");
             }
-        }),
-    });
-    if (result.success) {
-        return redirect("/", { headers: await result.data.commit() });
-    }
-    return json(result, { status: 401 });
-};
+        },
+    )(args);
 
 export default function () {
     return (

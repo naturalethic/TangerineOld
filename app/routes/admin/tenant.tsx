@@ -1,33 +1,24 @@
-import type { ActionFunction, LoaderFunction } from "@remix-run/node";
-import { json } from "@remix-run/node";
+import { ActionFunction, LoaderFunction, redirect } from "@remix-run/node";
 import { Link, Outlet, useLoaderData, useParams } from "@remix-run/react";
-import { makeDomainFunction } from "domain-functions";
-import { Form, formAction } from "remix-forms";
+import { Form } from "remix-forms";
 import { EntityList } from "~/components/admin";
 import { Modal } from "~/kit";
-import { db } from "~/lib/database.server";
 import { unpackId } from "~/lib/helper";
-import model from "~/lib/model";
+import { actionFunction, loaderFunction } from "~/lib/loader";
 import { Tenant } from "~/lib/types";
 
 type LoaderData = { tenants: Tenant[] };
 
-export const loader: LoaderFunction = async ({ request }) => {
-    const tenants = await model.tenant.all();
-    return json({ tenants });
-};
+export const loader: LoaderFunction = (args) =>
+    loaderFunction(async ({ db }) => ({
+        tenants: await db.query("SELECT * FROM _tenant ORDER BY name"),
+    }))(args);
 
-export const action: ActionFunction = async ({ request }) =>
-    formAction({
-        request,
-        schema: Tenant,
-        mutation: makeDomainFunction(Tenant)(async (tenant) => {
-            return await db.create("_tenant", tenant);
-        }),
-        successPath: (tenant: Tenant) => {
-            return `/admin/tenant/${unpackId(tenant)}`;
-        },
-    });
+export const action: ActionFunction = (args) =>
+    actionFunction(Tenant, async (input, { db }) => {
+        const tenant = await db.create("_tenant", input);
+        return redirect(`/admin/tenant/${unpackId(tenant)}`);
+    })(args);
 
 export default function () {
     const { tenants } = useLoaderData<LoaderData>();

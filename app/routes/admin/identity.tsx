@@ -1,21 +1,19 @@
-import type { ActionFunction, LoaderFunction } from "@remix-run/node";
-import { json } from "@remix-run/node";
+import { ActionFunction, LoaderFunction, redirect } from "@remix-run/node";
 import { Link, Outlet, useLoaderData, useParams } from "@remix-run/react";
-import { makeDomainFunction } from "domain-functions";
-import { Form, formAction } from "remix-forms";
+import { Form } from "remix-forms";
 import { z } from "zod";
 import { EntityList } from "~/components/admin";
 import { Modal } from "~/kit";
-import { db } from "~/lib/database.server";
 import { unpackId } from "~/lib/helper";
+import { actionFunction, loaderFunction } from "~/lib/loader";
 import { Identity } from "~/lib/types";
 
 type LoaderData = { identities: Identity[] };
 
-export const loader: LoaderFunction = async ({ request }) => {
-    const identities = await db.query("SELECT id, username FROM _identity");
-    return json({ identities });
-};
+export const loader: LoaderFunction = (args) =>
+    loaderFunction(async ({ db }) => ({
+        identities: await db.query("SELECT id, username FROM _identity"),
+    }))(args);
 
 type IdentityInput = z.infer<typeof IdentityInput>;
 const IdentityInput = z.object({
@@ -23,26 +21,17 @@ const IdentityInput = z.object({
     password: z.string(),
 });
 
-export const action: ActionFunction = async ({ request }) =>
-    formAction({
-        request,
-        schema: IdentityInput,
-        mutation: makeDomainFunction(IdentityInput)(async (identity) => {
-            return (await db.query(
-                `
-                CREATE _identity
-                   SET username = '${identity.username}',
-                       password = crypto::argon2::generate('${identity.password}'),
-                       admin = false,
-                       roles = {}
-                `,
-                true,
-            )) as Identity;
-        }),
-        successPath: (identity: Identity) => {
-            return `/admin/identity/${unpackId(identity)}`;
-        },
-    });
+export const action: ActionFunction = (args) =>
+    actionFunction(IdentityInput, async ({ username, password }, { db }) => {
+        const identity = await db.queryFirst<Identity>(`
+            CREATE _identity
+               SET username = '${username}',
+                   password = crypto::argon2::generate('${password}'),
+                   admin = false,
+                   roles = {}
+        `);
+        return redirect(`/admin/identity/${unpackId(identity)}`);
+    })(args);
 
 export default function () {
     const { identities } = useLoaderData<LoaderData>();
