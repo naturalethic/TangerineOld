@@ -1,7 +1,7 @@
 import { LoaderFunction } from "@remix-run/node";
 import { Outlet, useLoaderData, useParams } from "@remix-run/react";
-import { EntityList } from "~/components/admin";
 import { loaderFunction } from "~/lib/loader";
+import { EntityList } from "./EntityList";
 
 type LoaderData = { tables: string[] };
 

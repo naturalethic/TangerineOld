@@ -4,9 +4,9 @@ import { makeDomainFunction } from "domain-functions";
 import { Form, formAction } from "remix-forms";
 import { z } from "zod";
 import { Modal } from "~/kit";
-import { withDb } from "~/lib/database.server";
 import { packId } from "~/lib/helper";
 import { loaderFunction } from "~/lib/loader";
+import { withDb } from "~/lib/server/database.server";
 import { Collection, Field } from "~/lib/types";
 
 const Params = z.object({ collection: z.string() });

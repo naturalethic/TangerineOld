@@ -3,9 +3,9 @@ import {
     Session as RemixSession,
     SessionStorage,
 } from "@remix-run/node";
+import { packId, unpackId } from "../helper";
+import { Identity, Session as SessionBase } from "../types";
 import { withDb } from "./database.server";
-import { packId, unpackId } from "./helper";
-import { Identity, Session as SessionBase } from "./types";
 
 function createDatabaseSessionStorage() {
     return createSessionStorage({

@@ -6,9 +6,9 @@ import { capitalize, pluralize } from "inflection";
 import { useEffect, useRef, useState } from "react";
 import { MdDelete } from "react-icons/md";
 import { z } from "zod";
-import { db } from "~/lib/database.server";
 import { loaderFunction } from "~/lib/loader";
 import model from "~/lib/model";
+import { db } from "~/lib/server/database.server";
 import { Collection, Field, Tenant } from "~/lib/types";
 
 type LoaderData = {

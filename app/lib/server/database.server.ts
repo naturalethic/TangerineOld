@@ -1,6 +1,6 @@
 import Surreal from "surrealdb.js";
-import { packId } from "./helper";
-import type { Identified } from "./types";
+import { packId } from "../helper";
+import type { Identified } from "../types";
 
 export class Connection {
     namespace: string;

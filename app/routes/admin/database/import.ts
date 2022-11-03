@@ -5,7 +5,7 @@ import {
     unstable_parseMultipartFormData,
 } from "@remix-run/node";
 import Zip from "jszip";
-import { withDb } from "~/lib/database.server";
+import { withDb } from "~/lib/server/database.server";
 
 export const action: ActionFunction = async ({ request }) => {
     const uploadHandler = await unstable_createMemoryUploadHandler();

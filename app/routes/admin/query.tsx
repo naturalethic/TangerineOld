@@ -6,7 +6,9 @@ import { z } from "zod";
 import { actionFunction, loaderFunction } from "~/lib/loader";
 import { Query } from "~/lib/types";
 
-type LoaderData = { queries: Query[] };
+interface LoaderData {
+    queries: Query[];
+}
 
 export const loader: LoaderFunction = (args) =>
     loaderFunction(async ({ db }) => ({

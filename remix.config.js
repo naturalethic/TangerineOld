@@ -1,6 +1,6 @@
 /** @type {import('@remix-run/dev').AppConfig} */
 module.exports = {
-    ignoredRouteFiles: ["**/.*"],
+    ignoredRouteFiles: ["**/.*", "**/[A-Z]*.tsx"],
     serverBuildTarget: "esm",
     serverDependenciesToBundle: ["dot-prop"],
 };

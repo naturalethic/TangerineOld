@@ -1,11 +1,11 @@
 import { ActionFunction, LoaderFunction, redirect } from "@remix-run/node";
 import { Link, Outlet, useLoaderData, useParams } from "@remix-run/react";
 import { Form } from "remix-forms";
-import { EntityList } from "~/components/admin";
 import { Modal } from "~/kit";
 import { unpackId } from "~/lib/helper";
 import { actionFunction, loaderFunction } from "~/lib/loader";
 import { Tenant } from "~/lib/types";
+import { EntityList } from "./EntityList";
 
 type LoaderData = { tenants: Tenant[] };
 

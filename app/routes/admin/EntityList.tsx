@@ -2,7 +2,7 @@ import { Link } from "@remix-run/react";
 import { capitalize, pluralize } from "inflection";
 import { unpackId } from "~/lib/helper";
 
-interface EntityListProps {
+interface EntityList {
     children?: React.ReactNode;
     entities: any[];
     linkPrefix: string;
@@ -10,20 +10,6 @@ interface EntityListProps {
     activePredicate: (entity: any) => boolean;
     pluralizeLabel?: boolean;
     capitalizeLabel?: boolean;
-}
-
-function formatLabel(
-    text: string,
-    pluralizeLabel?: boolean,
-    capitalizeLabel?: boolean,
-) {
-    if (capitalizeLabel) {
-        text = capitalize(text);
-    }
-    if (pluralizeLabel) {
-        text = pluralize(text);
-    }
-    return text;
 }
 
 export function EntityList({
@@ -34,7 +20,7 @@ export function EntityList({
     activePredicate,
     pluralizeLabel = false,
     capitalizeLabel = false,
-}: EntityListProps) {
+}: EntityList) {
     return (
         <div className="flex flex-col mr-2 ml-2">
             {children}
@@ -70,4 +56,18 @@ export function EntityList({
             </div>
         </div>
     );
+}
+
+function formatLabel(
+    text: string,
+    pluralizeLabel?: boolean,
+    capitalizeLabel?: boolean,
+) {
+    if (capitalizeLabel) {
+        text = capitalize(text);
+    }
+    if (pluralizeLabel) {
+        text = pluralize(text);
+    }
+    return text;
 }

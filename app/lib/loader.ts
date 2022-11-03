@@ -3,8 +3,8 @@ import { Params } from "@remix-run/react";
 import { makeDomainFunction } from "domain-functions";
 import { FormSchema, performMutation } from "remix-forms";
 import { z } from "zod";
-import { Connection, withDb } from "./database.server";
-import { Session } from "./session.server";
+import { Connection, withDb } from "./server/database.server";
+import { Session } from "./server/session.server";
 import { Identity } from "./types";
 
 interface Environment {
