@@ -1,247 +1,99 @@
-import { ActionFunction, json, LoaderFunction } from "@remix-run/node";
-import { Link, useLoaderData } from "@remix-run/react";
-import { makeDomainFunction } from "domain-functions";
-import { Form, formAction } from "remix-forms";
+import { ActionFunction, LoaderFunction } from "@remix-run/node";
+import { Form, useLoaderData } from "@remix-run/react";
 import { z } from "zod";
-import { Modal } from "~/kit";
+import { Action, Select, Text } from "~/kit/form";
 import { packId } from "~/lib/helper";
-import { loaderFunction } from "~/lib/loader";
-import { withDb } from "~/lib/server/database.server";
+import { actionFunction, loaderFunction } from "~/lib/loader";
 import { Collection, Field } from "~/lib/types";
 
 const Params = z.object({ collection: z.string() });
 
-type LoaderData = { collection: Collection; fields: Field[] };
+type LoaderData = { collection: Collection };
 
 export const loader: LoaderFunction = (args) =>
     loaderFunction(async ({ db, params }) => {
         const id = packId("_collection", Params.parse(params).collection);
+        const collection = await db.select<Collection>(id);
         return {
-            collection: await db.select(id),
-            fields: await db.query(
-                "SELECT * FROM _field WHERE collection = $id",
-                { id },
-            ),
+            collection,
         };
     })(args);
 
-export const action: ActionFunction = async ({ request }) => {
-    const url = new URL(request.url);
-    const successPath = url.pathname;
-    return await withDb(async (db) => {
-        switch (url.searchParams.get("action")) {
-            case "update-collection":
-                return formAction({
-                    request,
-                    schema: Collection,
-                    successPath,
-                    mutation: makeDomainFunction(Collection)(
-                        async (collection) => {
-                            return await db.change(collection);
-                        },
-                    ),
-                });
-            case "create-field":
-                return formAction({
-                    request,
-                    schema: Field,
-                    successPath,
-                    mutation: makeDomainFunction(Field)(async (field) => {
-                        return await db.create("_field", field);
-                    }),
-                });
-            case "update-field":
-                return formAction({
-                    request,
-                    schema: Field,
-                    successPath,
-                    mutation: makeDomainFunction(Field)(async (field) => {
-                        return await db.change(field);
-                    }),
-                });
+const ActionParams = z.object({
+    collection: z.string(),
+});
+
+const ActionInput = z.object({
+    action: z.enum(["change", "create-field"]),
+    collection: z.object({
+        name: z.string().min(1),
+        fields: z.array(Field),
+    }),
+});
+
+export const action: ActionFunction = (args) =>
+    actionFunction(ActionInput, async (input, { params, method, db }) => {
+        const p = ActionParams.parse(params);
+        const collection = await db.select<Collection>(
+            "_collection",
+            p.collection,
+        );
+        Object.assign(collection, input.collection);
+        switch (input.action) {
+            case "change": {
+                await db.change(collection);
+                break;
+            }
+            case "create-field": {
+                collection.fields.push({ name: "New Field", type: "text" });
+                await db.update(collection);
+                break;
+            }
         }
-        throw json({ error: "Bad request" }, { status: 400 });
-    });
-};
+    })(args);
 
 export default function () {
-    const { collection, fields } = useLoaderData<LoaderData>();
-
-    // const [fields, setFields] = useState<Field[]>(collection.fields);
-
-    // const onAddField = () => {
-    // 	const name = faker.word.noun();
-    // 	const type = faker.helpers.arrayElement([
-    // 		"checkbox",
-    // 		"text",
-    // 		"radio",
-    // 		"date",
-    // 		"time",
-    // 		"datetime",
-    // 	]) as Field["type"];
-    // 	const field = Field.parse({ name, type });
-    // 	// type === "radio" ? { name, type, values: [] } : { name, type };
-    // 	setFields([...fields, field]);
-    // };
-
-    // const onChangeFieldType = (index: number, type: Field["type"]) => {
-    // 	const newFields = [...fields];
-    // 	newFields[index].type = type;
-    // 	setFields(newFields);
-    // };
-
-    // const cellClass = "border border-zinc-600 px-2 py-1";
-
-    // const validator = withZod(Collection);
-
-    // const onClickNewField = () => {
-    // const name = prompt("Collection name");
-    // if (name) {
-    // 	action.submit(
-    // 		{ name: singularize(name).toLowerCase() },
-    // 		{ method: "post", action: "/admin/collection/create" },
-    // 	);
-    // }
-    // };
+    const { collection } = useLoaderData<LoaderData>();
 
     return (
-        <div
+        <Form
             key={collection.id}
+            method="post"
             className="flex flex-col bg-zinc-800 rounded h-full px-4 py-4"
         >
-            <Form
-                action="?action=update-collection"
-                schema={Collection}
-                values={collection}
-                hiddenFields={["id"]}
-                buttonLabel="Save"
-                pendingButtonLabel="Save"
+            <Text
+                name="collection[name]"
+                label="Name"
+                defaultValue={collection.name}
             />
             <div className="mt-4">Fields</div>
-            <Link
+            <Action
                 className="text-xs border py-px px-1 rounded border-zinc-400 text-zinc-400 bg-zinc-600 cursor-pointer text-center w-36 mt-2"
-                to="?action=create-field"
-            >
-                NEW
-            </Link>
-            <div className="flex flex-row">
-                {fields.map((field) => {
-                    const hiddenFields: Array<keyof Field> = [
-                        "id",
-                        "collection",
-                    ];
-                    if (!["radio"].includes(field.type)) {
-                        hiddenFields.push("values");
-                    }
-                    return (
-                        <div
-                            key={field.id}
-                            className="mt-2 mr-2 border p-2 rounded"
-                        >
-                            <Form
-                                schema={Field}
-                                values={field}
-                                hiddenFields={hiddenFields}
-                                action="?action=update-field"
-                                buttonLabel="Save"
-                                pendingButtonLabel="Save"
-                            >
-                                {({ Field, Errors, Button }) => (
-                                    <>
-                                        <Field name="id" />
-                                        <Field name="collection" />
-                                        <Field name="name" />
-                                        <Field name="type" />
-                                        <Field name="values" />
-                                        <Errors />
-                                        <Button />
-                                    </>
-                                )}
-                            </Form>
-                        </div>
-                    );
-                })}
-            </div>
-
-            {/* <Form
-					method="patch"
-					action="/admin/collection/update"
-					validator={withZod(Collection)}
-				>
-					<Hidden name="id" value={collection.id} />
-					<Label label="name">
-						<Text name="name" defaultValue={collection.name} />
-					</Label>
-					<Label label="fields" onAdd={onAddField}>
-						<div className="flex flex-col rounded bg-zinc-500 pt-3 text-sm">
-							<table className="text-left border-collapse">
-								<thead>
-									<tr>
-										<th className="font-normal px-3">Name</th>
-										<th className="font-normal px-3">Type</th>
-										<th className="font-normal px-3">Values</th>
-									</tr>
-								</thead>
-								<tbody className="bg-zinc-800">
-									{fields.map((field, i) => (
-										<tr key={field.name}>
-											<td className={cellClass}>
-												<Text
-													name={`field[${i}].name`}
-													defaultValue={field.name}
-													border={false}
-													ring={false}
-												/>
-											</td>
-											<td className={cellClass}>
-												<Select
-													value={field.type}
-													border={false}
-													onChange={(value) =>
-														onChangeFieldType(i, value as Field["type"])}
-												>
-													<Item value="checkbox" label="Checkbox" />
-													<Item value="text" label="Text" />
-													<Item value="radio" label="Radio" />
-													<Item value="date" label="Date" />
-													<Item value="time" label="Time" />
-													<Item value="datetime" label="Datetime" />
-												</Select>
-											</td>
-											<td className={cellClass}>
-												<Text
-													name={`field[${i}].values`}
-													border={false}
-													ring={false}
-													defaultValue={
-														field.values ? field.values.join(", ") : ""
-													}
-													disabled={field.type !== "radio"}
-												/>
-											</td>
-										</tr>
-									))}
-								</tbody>
-							</table>
-						</div>
-					</Label>
-					<Submit />
-				</Form> */}
-            <Modal name="create-field" title="Create Field" focus="name">
-                <Form
-                    schema={Field}
-                    values={{
-                        name: "",
-                        type: "text",
-                        values: [],
-                        collection: collection.id,
-                        id: "",
-                    }}
-                    buttonLabel="Create"
-                    pendingButtonLabel="Create"
-                    hiddenFields={["id", "collection", "values"]}
-                />
-            </Modal>
-        </div>
+                value="create-field"
+                label="NEW"
+            />
+            {collection.fields.map((field, i) => (
+                <div key={i} className="flex flex-row space-x-3">
+                    <Text
+                        name={`collection[fields][${i}][name]`}
+                        label="Name"
+                        defaultValue={field.name}
+                    />
+                    <Select
+                        name={`collection[fields][${i}][type]`}
+                        label="Type"
+                        defaultValue={field.type}
+                    >
+                        <option value="checkbox">Checkbox</option>
+                        <option value="text">Text</option>
+                        <option value="radio">Radio</option>
+                        <option value="date">Date</option>
+                        <option value="time">Time</option>
+                        <option value="datetime">Datetime</option>
+                    </Select>
+                </div>
+            ))}
+            <Action value="change" label="Save" />
+        </Form>
     );
 }

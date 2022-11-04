@@ -2,5 +2,5 @@
 module.exports = {
     ignoredRouteFiles: ["**/.*", "**/[A-Z]*.tsx"],
     serverBuildTarget: "esm",
-    serverDependenciesToBundle: ["dot-prop"],
+    serverDependenciesToBundle: [],
 };

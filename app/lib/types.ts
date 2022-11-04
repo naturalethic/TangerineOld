@@ -3,12 +3,9 @@ import { z } from "zod";
 export type Identified = z.infer<typeof Identified>;
 export const Identified = z.object({ id: z.string() });
 
-export type Collection = z.infer<typeof Collection>;
-export const Collection = Identified.extend({ name: z.string() });
-
 export type Field = z.infer<typeof Field>;
-export const Field = Identified.extend({
-    collection: z.string(),
+export const Field = z.object({
+    // collection: z.string(),
     name: z.string(),
     type: z.enum([
         "checkbox",
@@ -29,6 +26,12 @@ export const Field = Identified.extend({
         }
         return value;
     }, z.string().array().optional()),
+});
+
+export type Collection = z.infer<typeof Collection>;
+export const Collection = Identified.extend({
+    name: z.string(),
+    fields: z.array(Field),
 });
 
 export type Tenant = z.infer<typeof Tenant>;

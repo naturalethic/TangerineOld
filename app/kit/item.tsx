@@ -1,8 +1,8 @@
-interface ItemProps {
+interface Item {
     label: string;
     value: string;
 }
 
-export function Item(_: ItemProps) {
+export function Item(_: Item) {
     return <div />;
 }

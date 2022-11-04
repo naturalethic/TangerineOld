@@ -1,7 +1,9 @@
 import { ActionFunction, LoaderFunction, redirect } from "@remix-run/node";
-import { Link, Outlet, useLoaderData, useParams } from "@remix-run/react";
-import { Form } from "remix-forms";
+import { Form, Link, Outlet, useLoaderData, useParams } from "@remix-run/react";
+import { z } from "zod";
+// import { Form } from "remix-forms";
 import { Modal } from "~/kit";
+import { Action, Text } from "~/kit/form";
 import { unpackId } from "~/lib/helper";
 import { actionFunction, loaderFunction } from "~/lib/loader";
 import { Collection } from "~/lib/types";
@@ -16,9 +18,17 @@ export const loader: LoaderFunction = (args) =>
         ),
     }))(args);
 
+const ActionInput = z.object({
+    action: z.string(),
+    name: z.string(),
+});
+
 export const action: ActionFunction = (args) =>
-    actionFunction(Collection, async (input, { db }) => {
-        const collection = await db.create("_collection", input);
+    actionFunction(ActionInput, async (input, { db }) => {
+        const collection = await db.create("_collection", {
+            name: input.name,
+            fields: [],
+        });
         return redirect(`/admin/collection/${unpackId(collection)}`);
     })(args);
 
@@ -50,13 +60,17 @@ export default function () {
                 title="Create Collection"
                 focus="name"
             >
-                <Form
+                <Form method="post">
+                    <Text name="name" label="Name" />
+                    <Action value="create" />
+                </Form>
+                {/* <Form
                     schema={Collection}
                     values={{ name: "" }}
                     buttonLabel="Create"
                     pendingButtonLabel="Create"
-                    hiddenFields={["id"]}
-                />
+                    hiddenFields={["id", "fields"]}
+                /> */}
             </Modal>
         </div>
     );

@@ -1,7 +1,7 @@
 import type { ActionFunction, LoaderFunction } from "@remix-run/node";
 import { json } from "@remix-run/node";
 import { useFetcher, useLoaderData } from "@remix-run/react";
-import { setProperty } from "dot-prop";
+// import { setProperty } from "dot-prop";
 import { capitalize, pluralize } from "inflection";
 import { useEffect, useRef, useState } from "react";
 import { MdDelete } from "react-icons/md";

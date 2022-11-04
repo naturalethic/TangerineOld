@@ -55,6 +55,28 @@ export function actionFunction<Schema extends FormSchema>(
                 }),
         );
         const result = await performMutation({ request, schema, mutation });
+        console.log(result);
         return result.success ? result.data : result.errors;
+    };
+}
+
+export function formFunction<Schema extends z.ZodTypeAny>(
+    schema: Schema,
+    fn: (
+        input: z.infer<typeof schema>,
+        environment: Environment,
+    ) => Promise<unknown>,
+) {
+    return async ({ request, params }: DataFunctionArgs) => {
+        return await withDb(async (db) => {
+            try {
+                const input = schema.parse(await request.json());
+                return (
+                    (await fn(input, await makeEnv(db, request, params))) ?? {}
+                );
+            } catch (error) {
+                return json({ error });
+            }
+        });
     };
 }
