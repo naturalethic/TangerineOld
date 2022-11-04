@@ -8,7 +8,7 @@ import {
     useParams,
 } from "@remix-run/react";
 // import { setProperty } from "dot-prop";
-import { capitalize, pluralize } from "inflection";
+import { humanize, pluralize } from "inflected";
 import { useEffect, useRef, useState } from "react";
 import { MdDelete } from "react-icons/md";
 import { z } from "zod";
@@ -60,7 +60,7 @@ export default function () {
                                     "bg-orange-600 text-zinc-200"
                                 }`}
                             >
-                                {pluralize(capitalize(collection.name))}
+                                {pluralize(humanize(collection.name))}
                             </div>
                         </Link>
                     ))}

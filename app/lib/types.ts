@@ -5,7 +5,6 @@ export const Identified = z.object({ id: z.string() });
 
 export type Field = z.infer<typeof Field>;
 export const Field = z.object({
-    // collection: z.string(),
     name: z.string(),
     type: z.enum([
         "checkbox",

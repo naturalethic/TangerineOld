@@ -55,8 +55,13 @@ export function actionFunction<Schema extends FormSchema>(
                 }),
         );
         const result = await performMutation({ request, schema, mutation });
-        console.log(result);
-        return result.success ? result.data : result.errors;
+
+        if (result.success) {
+            return result.data;
+        } else {
+            console.error(result.errors);
+            return null;
+        }
     };
 }
 

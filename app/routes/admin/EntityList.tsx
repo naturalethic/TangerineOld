@@ -1,5 +1,5 @@
 import { Link } from "@remix-run/react";
-import { capitalize, pluralize } from "inflection";
+import { humanize, pluralize } from "inflected";
 import { unpackId } from "~/lib/helper";
 
 interface EntityList {
@@ -64,7 +64,7 @@ function formatLabel(
     capitalizeLabel?: boolean,
 ) {
     if (capitalizeLabel) {
-        text = capitalize(text);
+        text = humanize(text);
     }
     if (pluralizeLabel) {
         text = pluralize(text);

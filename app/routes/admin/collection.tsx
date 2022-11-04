@@ -1,9 +1,7 @@
 import { ActionFunction, LoaderFunction, redirect } from "@remix-run/node";
 import { Form, Link, Outlet, useLoaderData, useParams } from "@remix-run/react";
 import { z } from "zod";
-// import { Form } from "remix-forms";
-import { Modal } from "~/kit";
-import { Action, Text } from "~/kit/form";
+import { Action, Modal, Text } from "~/kit";
 import { unpackId } from "~/lib/helper";
 import { actionFunction, loaderFunction } from "~/lib/loader";
 import { Collection } from "~/lib/types";
@@ -62,15 +60,8 @@ export default function () {
             >
                 <Form method="post">
                     <Text name="name" label="Name" />
-                    <Action value="create" />
+                    <Action name="create">Create</Action>
                 </Form>
-                {/* <Form
-                    schema={Collection}
-                    values={{ name: "" }}
-                    buttonLabel="Create"
-                    pendingButtonLabel="Create"
-                    hiddenFields={["id", "fields"]}
-                /> */}
             </Modal>
         </div>
     );
